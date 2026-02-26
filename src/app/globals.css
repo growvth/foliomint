@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * FolioMint Design Tokens
+ *
+ * Primary palette derived from logo: sage/mint teal (#6BA89A)
+ * Light theme: warm whites, subtle sage accents
+ * Dark theme: deep slate/charcoal, teal glow
+ *
+ * HSL format: H S% L% (without hsl() wrapper for Tailwind compatibility)
+ */
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 168 15% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 168 15% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 168 15% 10%;
+
+    --primary: 160 25% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 160 18% 95%;
+    --secondary-foreground: 160 25% 25%;
+
+    --muted: 160 10% 96%;
+    --muted-foreground: 160 8% 45%;
+
+    --accent: 160 18% 93%;
+    --accent-foreground: 160 25% 25%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 160 12% 90%;
+    --input: 160 12% 90%;
+    --ring: 160 25% 53%;
+
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 200 15% 8%;
+    --foreground: 160 10% 93%;
+
+    --card: 200 14% 11%;
+    --card-foreground: 160 10% 93%;
+
+    --popover: 200 14% 11%;
+    --popover-foreground: 160 10% 93%;
+
+    --primary: 160 30% 50%;
+    --primary-foreground: 200 15% 8%;
+
+    --secondary: 200 12% 15%;
+    --secondary-foreground: 160 10% 85%;
+
+    --muted: 200 12% 15%;
+    --muted-foreground: 160 8% 55%;
+
+    --accent: 200 12% 17%;
+    --accent-foreground: 160 10% 85%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 200 10% 18%;
+    --input: 200 10% 18%;
+    --ring: 160 30% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply tracking-tight;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

@@ -1,0 +1,149 @@
+import Link from 'next/link';
+import { Check, X } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Navbar } from '@/components/domain/navbar';
+import { Footer } from '@/components/domain/footer';
+import { cn } from '@/lib/utils';
+
+interface PlanFeature {
+  text: string;
+  included: boolean;
+}
+
+interface Plan {
+  name: string;
+  price: string;
+  period: string;
+  description: string;
+  features: PlanFeature[];
+  cta: string;
+  ctaHref: string;
+  highlighted: boolean;
+}
+
+const plans: Plan[] = [
+  {
+    name: 'Free',
+    price: '$0',
+    period: 'forever',
+    description: 'Perfect for getting started with your portfolio.',
+    features: [
+      { text: '3 AI parses per day', included: true },
+      { text: 'Editable form editor', included: true },
+      { text: 'Light & dark mode', included: true },
+      { text: '10 platform integrations', included: true },
+      { text: 'Basic analytics (view counts)', included: true },
+      { text: 'Classic theme', included: true },
+      { text: 'Hosted portfolio (3-month expiry)', included: true },
+      { text: 'Unlimited uploads', included: false },
+      { text: 'Multiple portfolios', included: false },
+      { text: 'Custom domains', included: false },
+      { text: 'Advanced analytics', included: false },
+      { text: 'Blog management', included: false },
+      { text: 'Neubrutalism theme', included: false },
+    ],
+    cta: 'Get Started',
+    ctaHref: '/generate',
+    highlighted: false,
+  },
+  {
+    name: 'Pro',
+    price: '$4',
+    period: '/month',
+    description: 'For professionals who want the complete experience.',
+    features: [
+      { text: 'Unlimited AI parses', included: true },
+      { text: 'Editable form editor', included: true },
+      { text: 'Light & dark mode', included: true },
+      { text: '10 platform integrations', included: true },
+      { text: 'Advanced analytics (referrer, device, geo)', included: true },
+      { text: 'All themes (Classic + Neubrutalism)', included: true },
+      { text: 'Hosted portfolio (no expiry)', included: true },
+      { text: 'Unlimited uploads', included: true },
+      { text: 'Multiple portfolios', included: true },
+      { text: 'Custom domains', included: true },
+      { text: 'Advanced analytics', included: true },
+      { text: 'Blog management (Markdown CRUD)', included: true },
+      { text: 'Priority support', included: true },
+    ],
+    cta: 'Start Pro',
+    ctaHref: '/generate',
+    highlighted: true,
+  },
+];
+
+export default function PricingPage() {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
+
+      <main className="flex-1 py-24 sm:py-32">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+              Simple, transparent pricing
+            </h1>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Start free, upgrade when you need more. No hidden fees, cancel anytime.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-16 grid max-w-4xl gap-8 lg:grid-cols-2">
+            {plans.map((plan) => (
+              <Card
+                key={plan.name}
+                className={cn(
+                  'relative flex flex-col',
+                  plan.highlighted && 'border-primary shadow-lg shadow-primary/10',
+                )}
+              >
+                {plan.highlighted && (
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Most Popular</Badge>
+                )}
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl">{plan.name}</CardTitle>
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className="text-4xl font-bold">{plan.price}</span>
+                    <span className="text-muted-foreground">{plan.period}</span>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">{plan.description}</p>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  <ul className="space-y-3">
+                    {plan.features.map((feature) => (
+                      <li key={feature.text} className="flex items-start gap-3 text-sm">
+                        {feature.included ? (
+                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                        ) : (
+                          <X className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/40" />
+                        )}
+                        <span className={cn(!feature.included && 'text-muted-foreground/60')}>
+                          {feature.text}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    asChild
+                    className="w-full"
+                    variant={plan.highlighted ? 'default' : 'outline'}
+                    size="lg"
+                  >
+                    <Link href={plan.ctaHref}>{plan.cta}</Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
