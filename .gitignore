@@ -54,3 +54,6 @@ next-env.d.ts
 
 # project direction (internal only, do not publish)
 Agents.md
+
+sample-resumes/
+test/

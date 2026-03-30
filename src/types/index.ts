@@ -1,46 +1,81 @@
 import { z } from 'zod';
 
+const nullableOptionalString = () =>
+  z.preprocess((value) => (value === null ? undefined : value), z.string().optional());
+
+const nullableOptionalEmail = () =>
+  z.preprocess(
+    (value) => (value === null ? undefined : value),
+    z.string().email().optional(),
+  );
+
+const nullableOptionalStringArray = () =>
+  z.preprocess((value) => (value === null ? undefined : value), z.array(z.string()).optional());
+
 export const experienceSchema = z.object({
   company: z.string(),
   role: z.string(),
   startDate: z.string(),
-  endDate: z.string().optional(),
+  endDate: nullableOptionalString(),
   bullets: z.array(z.string()),
-  location: z.string().optional(),
+  location: nullableOptionalString(),
 });
 
 export const educationSchema = z.object({
   institution: z.string(),
   degree: z.string(),
-  field: z.string().optional(),
+  field: nullableOptionalString(),
   startDate: z.string(),
-  endDate: z.string().optional(),
-  gpa: z.string().optional(),
+  endDate: nullableOptionalString(),
+  gpa: nullableOptionalString(),
 });
 
 export const projectSchema = z.object({
   name: z.string(),
-  description: z.string(),
-  url: z.string().optional(),
-  technologies: z.array(z.string()).optional(),
-  bullets: z.array(z.string()).optional(),
+  /** One short line (optional). Do not put bullet lists here — use bullets[]. */
+  description: nullableOptionalString(),
+  url: nullableOptionalString(),
+  technologies: nullableOptionalStringArray(),
+  bullets: z.preprocess(
+    (value) => (value === null || value === undefined ? [] : value),
+    z.array(z.string()),
+  ),
+});
+
+const titledBulletSectionSchema = z.object({
+  title: z.string(),
+  bullets: z.preprocess(
+    (value) => (value === null || value === undefined ? [] : value),
+    z.array(z.string()),
+  ),
 });
 
 export const resumeDataSchema = z.object({
   name: z.string(),
-  email: z.string().email().optional(),
-  phone: z.string().optional(),
-  location: z.string().optional(),
-  website: z.string().optional(),
-  linkedin: z.string().optional(),
-  github: z.string().optional(),
-  bio: z.string().optional(),
+  email: nullableOptionalEmail(),
+  phone: nullableOptionalString(),
+  location: nullableOptionalString(),
+  website: nullableOptionalString(),
+  linkedin: nullableOptionalString(),
+  github: nullableOptionalString(),
+  bio: nullableOptionalString(),
   skills: z.array(z.string()),
   experience: z.array(experienceSchema),
   education: z.array(educationSchema),
   projects: z.array(projectSchema),
-  certifications: z.array(z.string()).optional(),
-  languages: z.array(z.string()).optional(),
+  certifications: nullableOptionalStringArray(),
+  languages: nullableOptionalStringArray(),
+  /** Honors, prizes, recognitions (flat list). */
+  awards: nullableOptionalStringArray(),
+  /** Subsections with a heading and bullets (e.g. Extracurricular). */
+  extracurricular: z
+    .preprocess((value) => (value === null ? undefined : value), z.array(titledBulletSectionSchema).optional()),
+  /**
+   * Any resume section that does not fit the fields above (Publications, Volunteer, etc.).
+   * Prefer mapping known sections to first-class fields when possible.
+   */
+  otherSections: z
+    .preprocess((value) => (value === null ? undefined : value), z.array(titledBulletSectionSchema).optional()),
 });
 
 export type ResumeData = z.infer<typeof resumeDataSchema>;

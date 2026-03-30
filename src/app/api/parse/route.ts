@@ -1,37 +1,58 @@
 import { NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
+import { eq } from 'drizzle-orm';
 
-import { auth } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { portfolios, users } from '@/lib/db/schema';
 import { isPaymentGatingBypassed } from '@/lib/feature-flags';
 import { extractResumeFields } from '@/lib/groq';
 import { extractTextFromFile, buildFallbackResumeData } from '@/lib/resume-parser';
 import { checkUploadLimit, recordUploadAttempt } from '@/lib/rate-limit';
-import { eq } from 'drizzle-orm';
 
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const appUser = await getCurrentUser();
+
+    if (!appUser && process.env.NEXTAUTH_DEV_BYPASS !== 'true') {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const user = await db
+    const userId = appUser?.id ?? 'dev-user';
+    const userEmail = appUser?.email ?? 'dev@example.com';
+
+    let user = await db
       .select()
       .from(users)
-      .where(eq(users.id, session.user.id))
+      .where(eq(users.id, userId))
       .get();
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      if (process.env.NEXTAUTH_DEV_BYPASS === 'true') {
+        await db.insert(users).values({
+          id: userId,
+          email: userEmail,
+          name: appUser?.name ?? 'Dev User',
+        });
+
+        user = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, userId))
+          .get();
+        if (!user) {
+          return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+      } else {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
     }
 
     const isPaid =
       isPaymentGatingBypassed() || user.subscriptionStatus === 'active';
 
     if (!isPaid) {
-      const { allowed, remaining } = await checkUploadLimit(session.user.id);
+      const { allowed, remaining } = await checkUploadLimit(userId);
       if (!allowed) {
         return NextResponse.json(
           {
@@ -69,7 +90,7 @@ export async function POST(request: Request) {
 
     await db.insert(portfolios).values({
       id: portfolioId,
-      userId: session.user.id,
+      userId,
       slug,
       title: `${resumeData.name}'s Portfolio`,
       content: resumeData as unknown as Record<string, unknown>,
@@ -79,7 +100,7 @@ export async function POST(request: Request) {
     });
 
     if (!isPaid) {
-      await recordUploadAttempt(session.user.id);
+      await recordUploadAttempt(userId);
     }
 
     return NextResponse.json({ portfolioId, slug });
@@ -91,3 +112,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

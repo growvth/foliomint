@@ -45,9 +45,42 @@ export function extractTextFromFile(buffer: Buffer, mimeType: string): Promise<s
 }
 
 export function buildFallbackResumeData(rawText: string): ResumeData {
-  const lines = rawText.split('\n').filter((l) => l.trim());
+  const lines = rawText.split('\n').map((l) => l.trim()).filter(Boolean);
+
+  const headingBlacklist = new Set([
+    'profile',
+    'contact',
+    'contacts',
+    'about',
+    'summary',
+    'experience',
+    'work experience',
+    'work history',
+    'education',
+    'projects',
+    'skills',
+    'certifications',
+    'languages',
+  ]);
+
+  const nameCandidate =
+    lines.find((line) => {
+      const lower = line.toLowerCase();
+      if (headingBlacklist.has(lower)) return false;
+      if (lower.includes('@')) return false;
+      if (lower.includes('linkedin.com') || lower.includes('github.com')) return false;
+      if (lower.startsWith('http://') || lower.startsWith('https://') || lower.startsWith('www.')) {
+        return false;
+      }
+      // Heuristic: treat 2–4 word capitalized strings as likely names
+      const words = line.split(/\s+/);
+      if (words.length < 2 || words.length > 5) return false;
+      const capitalizedWords = words.filter((w) => /^[A-Z][a-zA-Z'-]*$/.test(w));
+      return capitalizedWords.length >= 2;
+    }) ?? lines[0];
+
   return {
-    name: lines[0]?.trim() ?? 'Unknown',
+    name: nameCandidate || 'Unknown',
     skills: [],
     experience: [],
     education: [],

@@ -9,6 +9,9 @@ const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 export async function checkUploadLimit(
   userId: string,
 ): Promise<{ allowed: boolean; remaining: number }> {
+  if (process.env.NEXTAUTH_DEV_BYPASS === 'true') {
+    return { allowed: true, remaining: FREE_TIER_DAILY_LIMIT };
+  }
   const record = await db
     .select()
     .from(uploadAttempts)
@@ -30,6 +33,9 @@ export async function checkUploadLimit(
 }
 
 export async function recordUploadAttempt(userId: string): Promise<void> {
+  if (process.env.NEXTAUTH_DEV_BYPASS === 'true') {
+    return;
+  }
   const existing = await db
     .select()
     .from(uploadAttempts)

@@ -45,6 +45,14 @@ export const metadata: Metadata = {
     description:
       'Convert your resume into a beautiful, editable portfolio website in minutes.',
   },
+  icons: {
+    icon: [
+      { url: '/logo.png', type: 'image/png' },
+      { url: '/logo.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: ['/logo.png'],
+    apple: ['/logo.png'],
+  },
 };
 
 export const viewport: Viewport = {

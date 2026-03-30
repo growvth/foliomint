@@ -1,12 +1,51 @@
 import Link from 'next/link';
-import { Plus, ExternalLink, BarChart3, Settings } from 'lucide-react';
+import { redirect } from 'next/navigation';
+import { Plus, ExternalLink, BarChart3, Settings, Globe, Pencil } from 'lucide-react';
 
+import { getCurrentUser } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { portfolios, viewLogs } from '@/lib/db/schema';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Navbar } from '@/components/domain/navbar';
+import { eq, sql } from 'drizzle-orm';
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
+  if (!user && process.env.NEXTAUTH_DEV_BYPASS !== 'true') {
+    redirect(`/sign-in?callbackUrl=${encodeURIComponent('/dashboard')}`);
+  }
+
+  const userId = user?.id ?? 'dev-user';
+
+  const [userPortfolios, stats] = await Promise.all([
+    db
+      .select({
+        id: portfolios.id,
+        title: portfolios.title,
+        slug: portfolios.slug,
+        theme: portfolios.theme,
+        isPublished: portfolios.isPublished,
+        createdAt: portfolios.createdAt,
+        updatedAt: portfolios.updatedAt,
+      })
+      .from(portfolios)
+      .where(eq(portfolios.userId, userId)),
+    db
+      .select({
+        totalViews: sql<number>`count(*)`,
+        publishedCount: sql<number>`sum(case when ${portfolios.isPublished} = 1 then 1 else 0 end)`,
+      })
+      .from(portfolios)
+      .leftJoin(viewLogs, eq(viewLogs.portfolioId, portfolios.id))
+      .where(eq(portfolios.userId, userId))
+      .get(),
+  ]);
+
+  const totalViews = stats?.totalViews ?? 0;
+  const publishedCount = stats?.publishedCount ?? 0;
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -32,9 +71,13 @@ export default function DashboardPage() {
           {/* Stats */}
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { label: 'Total Views', value: '—', description: 'All time' },
-              { label: 'Portfolios', value: '0', description: 'Active' },
-              { label: 'Integrations', value: '0', description: 'Connected' },
+              { label: 'Total Views', value: totalViews.toString(), description: 'All time' },
+              {
+                label: 'Portfolios',
+                value: userPortfolios.length.toString(),
+                description: `${publishedCount} published`,
+              },
+              { label: 'Integrations', value: '0', description: 'Coming soon' },
               { label: 'Plan', value: 'Free', description: '3 parses/day' },
             ].map((stat) => (
               <Card key={stat.label}>
@@ -52,19 +95,56 @@ export default function DashboardPage() {
           {/* Portfolios */}
           <div className="mt-12">
             <h2 className="text-xl font-semibold">Your Portfolios</h2>
-            <div className="mt-6">
-              <Card className="flex flex-col items-center justify-center py-16">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                  <Plus className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <p className="mt-4 text-sm font-medium">No portfolios yet</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Upload your resume to create your first portfolio.
-                </p>
-                <Button asChild className="mt-6" size="sm">
-                  <Link href="/generate">Create Portfolio</Link>
-                </Button>
-              </Card>
+            <div className="mt-6 space-y-4">
+              {userPortfolios.length === 0 ? (
+                <Card className="flex flex-col items-center justify-center py-16">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                    <Plus className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <p className="mt-4 text-sm font-medium">No portfolios yet</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Upload your resume to create your first portfolio.
+                  </p>
+                  <Button asChild className="mt-6" size="sm">
+                    <Link href="/generate">Create Portfolio</Link>
+                  </Button>
+                </Card>
+              ) : (
+                userPortfolios.map((portfolio) => (
+                  <Card key={portfolio.id} className="flex items-center justify-between">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        {portfolio.title}
+                        <Badge variant={portfolio.isPublished ? 'default' : 'outline'}>
+                          {portfolio.isPublished ? 'Published' : 'Draft'}
+                        </Badge>
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Updated{' '}
+                        {portfolio.updatedAt
+                          ? new Date(portfolio.updatedAt).toLocaleDateString()
+                          : 'recently'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex items-center gap-2">
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/editor/${portfolio.id}`}>
+                          <Pencil className="mr-1 h-3 w-3" />
+                          Edit
+                        </Link>
+                      </Button>
+                      {portfolio.isPublished && (
+                        <Button asChild variant="ghost" size="sm">
+                          <Link href={`/${portfolio.slug}`} target="_blank">
+                            <Globe className="mr-1 h-3 w-3" />
+                            View
+                          </Link>
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
 
@@ -115,3 +195,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

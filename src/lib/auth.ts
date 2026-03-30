@@ -18,6 +18,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     sessionsTable: sessions,
     verificationTokensTable: verificationTokens,
   }),
+  secret: process.env.NEXTAUTH_SECRET || 'dev-secret-do-not-use-in-prod',
   providers: [
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
@@ -46,3 +47,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
+export interface AppUser {
+  id: string;
+  email: string;
+  name?: string | null;
+}
+
+export async function getCurrentUser(): Promise<AppUser | null> {
+  if (process.env.NEXTAUTH_DEV_BYPASS === 'true') {
+    return {
+      id: 'dev-user',
+      email: 'dev@example.com',
+      name: 'Dev User',
+    };
+  }
+
+  const session = await auth();
+  if (!session?.user?.id || !session.user.email) {
+    return null;
+  }
+
+  return {
+    id: session.user.id,
+    email: session.user.email,
+    name: session.user.name,
+  };
+}
+
