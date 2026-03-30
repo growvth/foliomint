@@ -20,6 +20,7 @@ function buildExtractionPrompt(rawText: string): string {
 
 {
   "name": "string",
+  "profileImageUrl": "string or null",
   "email": "string or null",
   "phone": "string or null",
   "location": "string or null",
@@ -40,6 +41,7 @@ function buildExtractionPrompt(rawText: string): string {
 
 Rules:
 - The "name" field MUST be the person's full name (e.g., "John Doe"), not a section heading like "Contact", "Profile", "About", etc.
+- "profileImageUrl" is optional and usually unavailable in resume text exports. Use null unless an explicit personal image URL is present.
 - When the resume comes from LinkedIn or similar, the name is usually the prominent personal name at the top of the document. Use that as "name".
 - Do NOT set "name" to labels or entire sidebars such as "Contact", "Profile", or other section titles.
 - Contact fields ("email", "phone", "location", "website", "linkedin", "github") should come from explicit contact/profile info, not from project descriptions.

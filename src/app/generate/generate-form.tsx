@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Upload, FileText, Sparkles, AlertCircle, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -18,10 +19,12 @@ const ACCEPTED_TYPES = [
 const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
 
 export function GenerateForm() {
+  const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [consent, setConsent] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const validateFile = useCallback((f: File): string | null => {
@@ -61,6 +64,11 @@ export function GenerateForm() {
     if (!file) return;
     setIsUploading(true);
     setError(null);
+    setStatusMessage(
+      consent
+        ? 'Parsing with AI… this often takes 15–30 seconds. Please keep this tab open.'
+        : 'Extracting text and building your portfolio…',
+    );
 
     try {
       const formData = new FormData();
@@ -70,10 +78,11 @@ export function GenerateForm() {
       const res = await fetch('/api/parse', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       });
 
       if (!res.ok) {
-        const data = await res.json();
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
         const message = data.error || 'Upload failed';
         if (res.status === 401 || message.toLowerCase().includes('authentication')) {
           throw new Error('session_expired');
@@ -81,17 +90,27 @@ export function GenerateForm() {
         throw new Error(message);
       }
 
-      const data = await res.json();
-      window.location.href = `/editor/${data.portfolioId}`;
+      const data = (await res.json()) as { portfolioId?: string };
+      const portfolioId =
+        typeof data.portfolioId === 'string' && data.portfolioId.length > 0
+          ? data.portfolioId
+          : null;
+      if (!portfolioId) {
+        throw new Error('Server did not return a portfolio id. Please try again.');
+      }
+
+      setStatusMessage('Opening editor…');
+      router.replace(`/editor/${portfolioId}`);
+      return;
     } catch (err) {
       if (err instanceof Error && err.message === 'session_expired') {
         setError('session_expired');
       } else {
         setError(err instanceof Error ? err.message : 'Something went wrong');
       }
-    } finally {
-      setIsUploading(false);
+      setStatusMessage(null);
     }
+    setIsUploading(false);
   };
 
   const isAuthError = error === 'session_expired';
@@ -199,6 +218,13 @@ export function GenerateForm() {
                     error
                   )}
                 </div>
+              )}
+
+              {statusMessage && !error && (
+                <p className="flex items-start gap-2 rounded-lg border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                  <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin" />
+                  {statusMessage}
+                </p>
               )}
 
               <Button

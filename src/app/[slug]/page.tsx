@@ -59,9 +59,18 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
       <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
         {/* Header */}
         <header className="text-center">
-          <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 text-3xl font-bold text-primary">
-            {content.name.charAt(0).toUpperCase()}
-          </div>
+          {content.profileImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={content.profileImageUrl}
+              alt={content.name}
+              className="mx-auto mb-6 h-24 w-24 rounded-full object-cover"
+            />
+          ) : (
+            <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 text-3xl font-bold text-primary">
+              {content.name.charAt(0).toUpperCase()}
+            </div>
+          )}
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {content.name || slug}
           </h1>

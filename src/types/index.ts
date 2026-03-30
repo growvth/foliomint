@@ -52,6 +52,7 @@ const titledBulletSectionSchema = z.object({
 
 export const resumeDataSchema = z.object({
   name: z.string(),
+  profileImageUrl: nullableOptionalString(),
   email: nullableOptionalEmail(),
   phone: nullableOptionalString(),
   location: nullableOptionalString(),

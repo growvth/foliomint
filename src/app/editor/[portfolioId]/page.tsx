@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { Save, Eye, Palette, Globe, Loader2 } from 'lucide-react';
+import { Save, Eye, Globe, Loader2, Plus, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,13 +29,14 @@ export default function EditorPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const id = params.portfolioId;
+    const rawId = params.portfolioId;
+    const id = typeof rawId === 'string' ? rawId : Array.isArray(rawId) ? rawId[0] : undefined;
     if (!id) return;
 
     const load = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/portfolios/${id}`);
+        const res = await fetch(`/api/portfolios/${id}`, { credentials: 'include' });
         if (!res.ok) {
           if (res.status === 401) {
             router.push(`/sign-in?callbackUrl=${encodeURIComponent(`/editor/${id}`)}`);
@@ -70,6 +71,7 @@ export default function EditorPage() {
       const next = { ...state, ...updates };
       const res = await fetch(`/api/portfolios/${state.id}`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: next.title,
@@ -111,6 +113,14 @@ export default function EditorPage() {
   }
 
   const content = state.content;
+  const updateContent = (updater: (current: PortfolioContent) => PortfolioContent) => {
+    setState((prev) =>
+      prev && prev.content ? { ...prev, content: updater(prev.content) } : prev,
+    );
+  };
+
+  const textareaClass =
+    'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -197,19 +207,83 @@ export default function EditorPage() {
                         />
                       </div>
                       <div>
+                        <label className="mb-1.5 block text-sm font-medium">Profile image URL</label>
+                        <Input
+                          value={content.profileImageUrl ?? ''}
+                          onChange={(e) =>
+                            updateContent((c) => ({
+                              ...c,
+                              profileImageUrl: e.target.value || undefined,
+                            }))
+                          }
+                          placeholder="https://example.com/me.jpg"
+                        />
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <label className="mb-1.5 block text-sm font-medium">Email</label>
+                          <Input
+                            value={content.email ?? ''}
+                            onChange={(e) =>
+                              updateContent((c) => ({ ...c, email: e.target.value || undefined }))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-sm font-medium">Phone</label>
+                          <Input
+                            value={content.phone ?? ''}
+                            onChange={(e) =>
+                              updateContent((c) => ({ ...c, phone: e.target.value || undefined }))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium">Location</label>
+                        <Input
+                          value={content.location ?? ''}
+                          onChange={(e) =>
+                            updateContent((c) => ({ ...c, location: e.target.value || undefined }))
+                          }
+                        />
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <label className="mb-1.5 block text-sm font-medium">Website</label>
+                          <Input
+                            value={content.website ?? ''}
+                            onChange={(e) =>
+                              updateContent((c) => ({ ...c, website: e.target.value || undefined }))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-sm font-medium">LinkedIn</label>
+                          <Input
+                            value={content.linkedin ?? ''}
+                            onChange={(e) =>
+                              updateContent((c) => ({ ...c, linkedin: e.target.value || undefined }))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium">GitHub</label>
+                        <Input
+                          value={content.github ?? ''}
+                          onChange={(e) =>
+                            updateContent((c) => ({ ...c, github: e.target.value || undefined }))
+                          }
+                        />
+                      </div>
+                      <div>
                         <label className="mb-1.5 block text-sm font-medium">Bio</label>
                         <textarea
-                          className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          className={textareaClass}
                           value={content.bio ?? ''}
                           onChange={(e) =>
-                            setState((prev) =>
-                              prev && prev.content
-                                ? {
-                                    ...prev,
-                                    content: { ...prev.content, bio: e.target.value },
-                                  }
-                                : prev,
-                            )
+                            updateContent((c) => ({ ...c, bio: e.target.value || undefined }))
                           }
                           placeholder="A brief professional summary..."
                         />
@@ -226,7 +300,7 @@ export default function EditorPage() {
                 <CardContent>
                   {content ? (
                     <textarea
-                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      className={textareaClass}
                       value={content.skills.join(', ')}
                       onChange={(e) => {
                         const skills = e.target.value
@@ -251,34 +325,130 @@ export default function EditorPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Experience</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Experience</CardTitle>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        updateContent((c) => ({
+                          ...c,
+                          experience: [
+                            ...c.experience,
+                            { company: '', role: '', startDate: '', bullets: [], endDate: '', location: '' },
+                          ],
+                        }))
+                      }
+                    >
+                      <Plus className="mr-1 h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {content && content.experience.length > 0 ? (
                     <div className="space-y-4">
                       {content.experience.map((exp, idx) => (
                         <div key={`${exp.company}-${exp.role}-${idx}`} className="rounded-md border bg-muted/40 p-3 text-xs">
-                          <div className="flex flex-wrap items-baseline justify-between gap-1">
-                            <div className="font-semibold">
-                              {exp.role} @ {exp.company}
-                            </div>
-                            <div className="text-[11px] text-muted-foreground">
-                              {exp.startDate}
-                              {exp.endDate ? ` – ${exp.endDate}` : ' – Present'}
-                            </div>
+                          <div className="mb-2 flex justify-end">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  experience: c.experience.filter((_, i) => i !== idx),
+                                }))
+                              }
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
-                          {exp.location && (
-                            <div className="mt-0.5 text-[11px] text-muted-foreground">
-                              {exp.location}
-                            </div>
-                          )}
-                          {exp.bullets && exp.bullets.length > 0 && (
-                            <ul className="mt-2 list-disc space-y-0.5 pl-4">
-                              {exp.bullets.map((b, i) => (
-                                <li key={i}>{b}</li>
-                              ))}
-                            </ul>
-                          )}
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <Input
+                              value={exp.company}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  experience: c.experience.map((it, i) =>
+                                    i === idx ? { ...it, company: e.target.value } : it,
+                                  ),
+                                }))
+                              }
+                              placeholder="Company"
+                            />
+                            <Input
+                              value={exp.role}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  experience: c.experience.map((it, i) =>
+                                    i === idx ? { ...it, role: e.target.value } : it,
+                                  ),
+                                }))
+                              }
+                              placeholder="Role"
+                            />
+                          </div>
+                          <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                            <Input
+                              value={exp.startDate}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  experience: c.experience.map((it, i) =>
+                                    i === idx ? { ...it, startDate: e.target.value } : it,
+                                  ),
+                                }))
+                              }
+                              placeholder="Start date"
+                            />
+                            <Input
+                              value={exp.endDate ?? ''}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  experience: c.experience.map((it, i) =>
+                                    i === idx ? { ...it, endDate: e.target.value || undefined } : it,
+                                  ),
+                                }))
+                              }
+                              placeholder="End date"
+                            />
+                            <Input
+                              value={exp.location ?? ''}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  experience: c.experience.map((it, i) =>
+                                    i === idx ? { ...it, location: e.target.value || undefined } : it,
+                                  ),
+                                }))
+                              }
+                              placeholder="Location"
+                            />
+                          </div>
+                          <textarea
+                            className={`${textareaClass} mt-2 min-h-[72px]`}
+                            value={(exp.bullets ?? []).join('\n')}
+                            onChange={(e) =>
+                              updateContent((c) => ({
+                                ...c,
+                                experience: c.experience.map((it, i) =>
+                                  i === idx
+                                    ? {
+                                        ...it,
+                                        bullets: e.target.value
+                                          .split('\n')
+                                          .map((v) => v.trim())
+                                          .filter(Boolean),
+                                      }
+                                    : it,
+                                ),
+                              }))
+                            }
+                            placeholder="One bullet per line"
+                          />
                         </div>
                       ))}
                     </div>
@@ -292,22 +462,120 @@ export default function EditorPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Education</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Education</CardTitle>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        updateContent((c) => ({
+                          ...c,
+                          education: [
+                            ...c.education,
+                            { institution: '', degree: '', startDate: '', endDate: '', field: '', gpa: '' },
+                          ],
+                        }))
+                      }
+                    >
+                      <Plus className="mr-1 h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {content && content.education.length > 0 ? (
                     <div className="space-y-3">
                       {content.education.map((edu, idx) => (
                         <div key={`${edu.institution}-${edu.degree}-${idx}`} className="rounded-md border bg-muted/40 p-3 text-xs">
-                          <div className="font-semibold">{edu.institution}</div>
-                          <div className="mt-0.5 text-[11px] text-muted-foreground">
-                            {edu.degree}
-                            {edu.field ? ` · ${edu.field}` : ''}
+                          <div className="mb-2 flex justify-end">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  education: c.education.filter((_, i) => i !== idx),
+                                }))
+                              }
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <div className="mt-0.5 text-[11px] text-muted-foreground">
-                            {edu.startDate}
-                            {edu.endDate ? ` – ${edu.endDate}` : ''}
-                            {edu.gpa ? ` · GPA ${edu.gpa}` : ''}
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <Input
+                              value={edu.institution}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  education: c.education.map((it, i) =>
+                                    i === idx ? { ...it, institution: e.target.value } : it,
+                                  ),
+                                }))
+                              }
+                              placeholder="Institution"
+                            />
+                            <Input
+                              value={edu.degree}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  education: c.education.map((it, i) =>
+                                    i === idx ? { ...it, degree: e.target.value } : it,
+                                  ),
+                                }))
+                              }
+                              placeholder="Degree"
+                            />
+                          </div>
+                          <div className="mt-2 grid gap-2 sm:grid-cols-4">
+                            <Input
+                              value={edu.field ?? ''}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  education: c.education.map((it, i) =>
+                                    i === idx ? { ...it, field: e.target.value || undefined } : it,
+                                  ),
+                                }))
+                              }
+                              placeholder="Field"
+                            />
+                            <Input
+                              value={edu.startDate}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  education: c.education.map((it, i) =>
+                                    i === idx ? { ...it, startDate: e.target.value } : it,
+                                  ),
+                                }))
+                              }
+                              placeholder="Start"
+                            />
+                            <Input
+                              value={edu.endDate ?? ''}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  education: c.education.map((it, i) =>
+                                    i === idx ? { ...it, endDate: e.target.value || undefined } : it,
+                                  ),
+                                }))
+                              }
+                              placeholder="End"
+                            />
+                            <Input
+                              value={edu.gpa ?? ''}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  education: c.education.map((it, i) =>
+                                    i === idx ? { ...it, gpa: e.target.value || undefined } : it,
+                                  ),
+                                }))
+                              }
+                              placeholder="GPA"
+                            />
                           </div>
                         </div>
                       ))}
@@ -322,43 +590,123 @@ export default function EditorPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Projects</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Projects</CardTitle>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        updateContent((c) => ({
+                          ...c,
+                          projects: [...c.projects, { name: '', description: '', url: '', technologies: [], bullets: [] }],
+                        }))
+                      }
+                    >
+                      <Plus className="mr-1 h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {content && content.projects.length > 0 ? (
                     <div className="space-y-4">
                       {content.projects.map((project, idx) => (
                         <div key={`${project.name}-${idx}`} className="rounded-md border bg-muted/40 p-3 text-xs">
-                          <div className="flex flex-wrap items-baseline justify-between gap-1">
-                            <div className="font-semibold">{project.name}</div>
-                            {project.url && (
-                              <a
-                                href={project.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-[11px] text-primary underline"
-                              >
-                                View
-                              </a>
-                            )}
+                          <div className="mb-2 flex justify-end">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  projects: c.projects.filter((_, i) => i !== idx),
+                                }))
+                              }
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
-                          {project.description && (
-                            <div className="mt-1 text-[11px] text-muted-foreground">
-                              {project.description}
-                            </div>
-                          )}
-                          {project.technologies && project.technologies.length > 0 && (
-                            <div className="mt-1 text-[11px] text-muted-foreground">
-                              Tech: {project.technologies.join(', ')}
-                            </div>
-                          )}
-                          {project.bullets && project.bullets.length > 0 && (
-                            <ul className="mt-2 list-disc space-y-0.5 pl-4">
-                              {project.bullets.map((b, i) => (
-                                <li key={i}>{b}</li>
-                              ))}
-                            </ul>
-                          )}
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <Input
+                              value={project.name}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  projects: c.projects.map((it, i) =>
+                                    i === idx ? { ...it, name: e.target.value } : it,
+                                  ),
+                                }))
+                              }
+                              placeholder="Project name"
+                            />
+                            <Input
+                              value={project.url ?? ''}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  projects: c.projects.map((it, i) =>
+                                    i === idx ? { ...it, url: e.target.value || undefined } : it,
+                                  ),
+                                }))
+                              }
+                              placeholder="Project URL"
+                            />
+                          </div>
+                          <textarea
+                            className={`${textareaClass} mt-2 min-h-[56px]`}
+                            value={project.description ?? ''}
+                            onChange={(e) =>
+                              updateContent((c) => ({
+                                ...c,
+                                projects: c.projects.map((it, i) =>
+                                  i === idx ? { ...it, description: e.target.value || undefined } : it,
+                                ),
+                              }))
+                            }
+                            placeholder="Short description"
+                          />
+                          <Input
+                            className="mt-2"
+                            value={(project.technologies ?? []).join(', ')}
+                            onChange={(e) =>
+                              updateContent((c) => ({
+                                ...c,
+                                projects: c.projects.map((it, i) =>
+                                  i === idx
+                                    ? {
+                                        ...it,
+                                        technologies: e.target.value
+                                          .split(',')
+                                          .map((v) => v.trim())
+                                          .filter(Boolean),
+                                      }
+                                    : it,
+                                ),
+                              }))
+                            }
+                            placeholder="Technologies (comma-separated)"
+                          />
+                          <textarea
+                            className={`${textareaClass} mt-2 min-h-[72px]`}
+                            value={(project.bullets ?? []).join('\n')}
+                            onChange={(e) =>
+                              updateContent((c) => ({
+                                ...c,
+                                projects: c.projects.map((it, i) =>
+                                  i === idx
+                                    ? {
+                                        ...it,
+                                        bullets: e.target.value
+                                          .split('\n')
+                                          .map((v) => v.trim())
+                                          .filter(Boolean),
+                                      }
+                                    : it,
+                                ),
+                              }))
+                            }
+                            placeholder="One bullet per line"
+                          />
                         </div>
                       ))}
                     </div>
@@ -372,15 +720,54 @@ export default function EditorPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Awards</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Awards</CardTitle>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        updateContent((c) => ({
+                          ...c,
+                          awards: [...(c.awards ?? []), ''],
+                        }))
+                      }
+                    >
+                      <Plus className="mr-1 h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {content && content.awards && content.awards.length > 0 ? (
-                    <ul className="list-disc space-y-0.5 pl-4 text-xs">
+                    <div className="space-y-2">
                       {content.awards.map((a, i) => (
-                        <li key={i}>{a}</li>
+                        <div key={i} className="flex gap-2">
+                          <Input
+                            value={a}
+                            onChange={(e) =>
+                              updateContent((c) => ({
+                                ...c,
+                                awards: (c.awards ?? []).map((it, idx) =>
+                                  idx === i ? e.target.value : it,
+                                ),
+                              }))
+                            }
+                          />
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() =>
+                              updateContent((c) => ({
+                                ...c,
+                                awards: (c.awards ?? []).filter((_, idx) => idx !== i),
+                              }))
+                            }
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">No awards listed.</p>
                   )}
@@ -389,21 +776,75 @@ export default function EditorPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Extracurricular</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Extracurricular</CardTitle>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        updateContent((c) => ({
+                          ...c,
+                          extracurricular: [...(c.extracurricular ?? []), { title: '', bullets: [] }],
+                        }))
+                      }
+                    >
+                      <Plus className="mr-1 h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {content && content.extracurricular && content.extracurricular.length > 0 ? (
                     <div className="space-y-3">
                       {content.extracurricular.map((block, idx) => (
                         <div key={`${block.title}-${idx}`} className="rounded-md border bg-muted/40 p-3 text-xs">
-                          <div className="font-semibold">{block.title}</div>
-                          {block.bullets.length > 0 && (
-                            <ul className="mt-2 list-disc space-y-0.5 pl-4">
-                              {block.bullets.map((b, i) => (
-                                <li key={i}>{b}</li>
-                              ))}
-                            </ul>
-                          )}
+                          <div className="mb-2 flex justify-end">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  extracurricular: (c.extracurricular ?? []).filter((_, i) => i !== idx),
+                                }))
+                              }
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <Input
+                            value={block.title}
+                            onChange={(e) =>
+                              updateContent((c) => ({
+                                ...c,
+                                extracurricular: (c.extracurricular ?? []).map((it, i) =>
+                                  i === idx ? { ...it, title: e.target.value } : it,
+                                ),
+                              }))
+                            }
+                            placeholder="Section title"
+                          />
+                          <textarea
+                            className={`${textareaClass} mt-2 min-h-[72px]`}
+                            value={block.bullets.join('\n')}
+                            onChange={(e) =>
+                              updateContent((c) => ({
+                                ...c,
+                                extracurricular: (c.extracurricular ?? []).map((it, i) =>
+                                  i === idx
+                                    ? {
+                                        ...it,
+                                        bullets: e.target.value
+                                          .split('\n')
+                                          .map((v) => v.trim())
+                                          .filter(Boolean),
+                                      }
+                                    : it,
+                                ),
+                              }))
+                            }
+                            placeholder="One bullet per line"
+                          />
                         </div>
                       ))}
                     </div>
@@ -415,21 +856,75 @@ export default function EditorPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Other sections</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Other sections</CardTitle>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        updateContent((c) => ({
+                          ...c,
+                          otherSections: [...(c.otherSections ?? []), { title: '', bullets: [] }],
+                        }))
+                      }
+                    >
+                      <Plus className="mr-1 h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {content && content.otherSections && content.otherSections.length > 0 ? (
                     <div className="space-y-3">
                       {content.otherSections.map((block, idx) => (
                         <div key={`${block.title}-${idx}`} className="rounded-md border bg-muted/40 p-3 text-xs">
-                          <div className="font-semibold">{block.title}</div>
-                          {block.bullets.length > 0 && (
-                            <ul className="mt-2 list-disc space-y-0.5 pl-4">
-                              {block.bullets.map((b, i) => (
-                                <li key={i}>{b}</li>
-                              ))}
-                            </ul>
-                          )}
+                          <div className="mb-2 flex justify-end">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  otherSections: (c.otherSections ?? []).filter((_, i) => i !== idx),
+                                }))
+                              }
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <Input
+                            value={block.title}
+                            onChange={(e) =>
+                              updateContent((c) => ({
+                                ...c,
+                                otherSections: (c.otherSections ?? []).map((it, i) =>
+                                  i === idx ? { ...it, title: e.target.value } : it,
+                                ),
+                              }))
+                            }
+                            placeholder="Section title"
+                          />
+                          <textarea
+                            className={`${textareaClass} mt-2 min-h-[72px]`}
+                            value={block.bullets.join('\n')}
+                            onChange={(e) =>
+                              updateContent((c) => ({
+                                ...c,
+                                otherSections: (c.otherSections ?? []).map((it, i) =>
+                                  i === idx
+                                    ? {
+                                        ...it,
+                                        bullets: e.target.value
+                                          .split('\n')
+                                          .map((v) => v.trim())
+                                          .filter(Boolean),
+                                      }
+                                    : it,
+                                ),
+                              }))
+                            }
+                            placeholder="One bullet per line"
+                          />
                         </div>
                       ))}
                     </div>
@@ -456,9 +951,15 @@ export default function EditorPage() {
                   <CardContent>
                     <div className="space-y-6">
                       <div>
-                        <h2 className="text-2xl font-bold">
-                          {content?.name || state.title || 'Untitled portfolio'}
-                        </h2>
+                        {content?.profileImageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={content.profileImageUrl}
+                            alt={content.name || state.title}
+                            className="mb-3 h-16 w-16 rounded-full object-cover"
+                          />
+                        ) : null}
+                        <h2 className="text-2xl font-bold">{content?.name || state.title || 'Untitled portfolio'}</h2>
                         {content?.bio && (
                           <p className="mt-2 text-sm text-muted-foreground">{content.bio}</p>
                         )}
