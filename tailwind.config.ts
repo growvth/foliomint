@@ -47,6 +47,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['var(--font-sans)'],
+        display: ['var(--font-display)'],
         mono: ['var(--font-mono)'],
       },
       keyframes: {
@@ -70,7 +71,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [require('@tailwindcss/typography')],
 };
 
 export default config;

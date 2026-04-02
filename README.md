@@ -12,8 +12,12 @@ Turn your resume into a stunning portfolio website in minutes.
 - **Forms**: React Hook Form + Zod
 - **State**: Zustand
 - **AI Parsing**: Groq API (LLaMA 3.1)
-- **Payments**: Stripe Checkout + webhooks
-- **Emails**: Resend
+- **Payments**: Lemon Squeezy Checkout + webhooks
+- **Emails**: Resend (optional; portfolio publish notification)
+- **Blog**: Markdown posts per portfolio (`/[slug]/blog`)
+- **Themes**: Classic + Neubrutalism on public portfolio
+- **Integrations**: Profile links (GitHub, LinkedIn, …) on portfolio
+- **Custom domains**: DNS TXT verification stored in-app; host routing at deploy time
 
 ## Getting Started
 
@@ -21,11 +25,13 @@ Turn your resume into a stunning portfolio website in minutes.
 # 1. Copy environment variables
 cp .env.example .env.local
 
-# 2. Fill in your keys in .env.local:
+# 2. Fill in your keys in .env.local (copy from .env.example):
 #    - GROQ_API_KEY (free from console.groq.com)
 #    - NEXTAUTH_SECRET (generate with: openssl rand -base64 32)
-#    - AUTH_GITHUB_ID + AUTH_GITHUB_SECRET
+#    - AUTH_GITHUB_ID + AUTH_GITHUB_SECRET (optional: NEXTAUTH_DEV_BYPASS=true for OAuth-less dev)
 #    - DATABASE_URL=file:./data/dev.db
+#    - BYPASS_PAYMENT_GATING=true is set in .env.example for local dev without Lemon Squeezy
+#    Production checklist: see TODO.md
 
 # 3. Install dependencies
 npm install

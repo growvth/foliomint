@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
+    // Keep libsql out of the webpack bundle to avoid dev HMR corruption
+    // (__webpack_modules__[id] is not a function) after incremental compiles.
+    serverComponentsExternalPackages: ['@libsql/client'],
     serverActions: {
       bodySizeLimit: '4mb',
     },

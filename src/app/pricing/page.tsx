@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Navbar } from '@/components/domain/navbar';
 import { Footer } from '@/components/domain/footer';
+import { PricingProCta } from '@/components/domain/pricing-pro-cta';
 import { cn } from '@/lib/utils';
 
 interface PlanFeature {
@@ -70,7 +71,7 @@ const plans: Plan[] = [
       { text: 'Priority support', included: true },
     ],
     cta: 'Start Pro',
-    ctaHref: '/generate',
+    ctaHref: '/pricing',
     highlighted: true,
   },
 ];
@@ -128,14 +129,18 @@ export default function PricingPage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button
-                    asChild
-                    className="w-full"
-                    variant={plan.highlighted ? 'default' : 'outline'}
-                    size="lg"
-                  >
-                    <Link href={plan.ctaHref}>{plan.cta}</Link>
-                  </Button>
+                  {plan.highlighted ? (
+                    <PricingProCta variant="default" size="lg" />
+                  ) : (
+                    <Button
+                      asChild
+                      className="w-full"
+                      variant="outline"
+                      size="lg"
+                    >
+                      <Link href={plan.ctaHref}>{plan.cta}</Link>
+                    </Button>
+                  )}
                 </CardFooter>
               </Card>
             ))}

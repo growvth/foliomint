@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
@@ -7,8 +7,10 @@ export const users = sqliteTable('users', {
   emailVerified: integer('email_verified', { mode: 'timestamp' }),
   image: text('image'),
   subscriptionStatus: text('subscription_status').default('free').notNull(),
-  stripeCustomerId: text('stripe_customer_id'),
-  stripeSubscriptionId: text('stripe_subscription_id'),
+  /** Lemon Squeezy customer id (legacy column name from initial Stripe schema). */
+  lemonSqueezyCustomerId: text('stripe_customer_id'),
+  /** Lemon Squeezy subscription id (legacy column name from initial Stripe schema). */
+  lemonSqueezySubscriptionId: text('stripe_subscription_id'),
   preferences: text('preferences', { mode: 'json' })
     .$type<{ theme: 'light' | 'dark' | 'system' }>()
     .default({ theme: 'system' }),
@@ -62,6 +64,9 @@ export const portfolios = sqliteTable('portfolios', {
   isPublished: integer('is_published', { mode: 'boolean' }).default(false).notNull(),
   groqConsent: integer('groq_consent', { mode: 'boolean' }).default(false).notNull(),
   customDomain: text('custom_domain'),
+  domainVerificationToken: text('domain_verification_token'),
+  /** Null for rows created before this column existed; treat as false in app code. */
+  customDomainVerified: integer('custom_domain_verified', { mode: 'boolean' }),
   expiresAt: integer('expires_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
@@ -71,19 +76,25 @@ export const portfolios = sqliteTable('portfolios', {
     .$defaultFn(() => new Date()),
 });
 
-export const integrations = sqliteTable('integrations', {
-  id: text('id').primaryKey(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  platform: text('platform').notNull(),
-  username: text('username'),
-  accessToken: text('access_token'),
-  data: text('data', { mode: 'json' }).$type<Record<string, unknown>>(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .$defaultFn(() => new Date()),
-});
+export const integrations = sqliteTable(
+  'integrations',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    platform: text('platform').notNull(),
+    username: text('username'),
+    accessToken: text('access_token'),
+    data: text('data', { mode: 'json' }).$type<Record<string, unknown>>(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => ({
+    userPlatformUnq: uniqueIndex('integrations_user_platform_unq').on(t.userId, t.platform),
+  }),
+);
 
 export const uploadAttempts = sqliteTable('upload_attempts', {
   userId: text('user_id')
@@ -107,21 +118,27 @@ export const viewLogs = sqliteTable('view_logs', {
   device: text('device'),
 });
 
-export const blogPosts = sqliteTable('blog_posts', {
-  id: text('id').primaryKey(),
-  portfolioId: text('portfolio_id')
-    .notNull()
-    .references(() => portfolios.id, { onDelete: 'cascade' }),
-  title: text('title').notNull(),
-  slug: text('slug').notNull(),
-  content: text('content').notNull(),
-  excerpt: text('excerpt'),
-  isPublished: integer('is_published', { mode: 'boolean' }).default(false).notNull(),
-  publishedAt: integer('published_at', { mode: 'timestamp' }),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .$defaultFn(() => new Date()),
-});
+export const blogPosts = sqliteTable(
+  'blog_posts',
+  {
+    id: text('id').primaryKey(),
+    portfolioId: text('portfolio_id')
+      .notNull()
+      .references(() => portfolios.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    slug: text('slug').notNull(),
+    content: text('content').notNull(),
+    excerpt: text('excerpt'),
+    isPublished: integer('is_published', { mode: 'boolean' }).default(false).notNull(),
+    publishedAt: integer('published_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => ({
+    portfolioSlugUnq: uniqueIndex('blog_posts_portfolio_slug_unq').on(t.portfolioId, t.slug),
+  }),
+);

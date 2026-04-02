@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { Save, Eye, Globe, Loader2, Plus, Trash2 } from 'lucide-react';
+import { BookOpen, Globe2, Save, Eye, Globe, Loader2, Plus, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +24,7 @@ export default function EditorPage() {
   const params = useParams<{ portfolioId: string }>();
   const router = useRouter();
   const [state, setState] = useState<EditorState | null>(null);
+  const [tier, setTier] = useState<'free' | 'pro'>('pro');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +54,8 @@ export default function EditorPage() {
           isPublished: data.isPublished,
           content: data.content,
         });
+        const me = await fetch('/api/me', { credentials: 'include' }).then((r) => r.json() as Promise<{ tier?: string }>);
+        setTier(me.tier === 'pro' ? 'pro' : 'free');
         setError(null);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to load portfolio');
@@ -130,11 +133,48 @@ export default function EditorPage() {
         {/* Editor toolbar */}
         <div className="sticky top-16 z-40 border-b bg-background/80 backdrop-blur-lg">
           <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Editing portfolio</span>
-              <code className="rounded bg-muted px-2 py-0.5 text-xs">{state.slug}</code>
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <span className="text-sm text-muted-foreground">Editing</span>
+              <code className="truncate rounded bg-muted px-2 py-0.5 text-xs">{state.slug}</code>
+              <span
+                className={
+                  tier === 'pro'
+                    ? 'rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary'
+                    : 'rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[11px] font-medium text-muted-foreground'
+                }
+              >
+                {tier === 'pro' ? 'Pro' : 'Free'}
+              </span>
+              <div className="ml-1 hidden items-center gap-1 sm:flex">
+                <Button asChild variant="ghost" size="sm">
+                  <Link href={`/editor/${state.id}/blog`}>
+                    <BookOpen className="mr-1 h-4 w-4" />
+                    Blog
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" size="sm">
+                  <Link href={`/editor/${state.id}/domain`}>
+                    <Globe2 className="mr-1 h-4 w-4" />
+                    Domain
+                  </Link>
+                </Button>
+              </div>
             </div>
             <div className="flex items-center gap-2">
+              <label className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
+                Theme
+                <select
+                  className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+                  value={state.theme}
+                  onChange={(e) => void handleSave({ theme: e.target.value })}
+                  disabled={saving}
+                >
+                  <option value="classic">Classic</option>
+                  <option value="neubrutalism" disabled={tier === 'free'}>
+                    Neubrutalism (Pro)
+                  </option>
+                </select>
+              </label>
               {state.isPublished && (
                 <Button asChild variant="ghost" size="sm">
                   <Link href={`/${state.slug}`} target="_blank">
@@ -143,6 +183,18 @@ export default function EditorPage() {
                   </Link>
                 </Button>
               )}
+              <div className="flex items-center gap-1 sm:hidden">
+                <Button asChild variant="ghost" size="icon">
+                  <Link href={`/editor/${state.id}/blog`} aria-label="Blog">
+                    <BookOpen className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" size="icon">
+                  <Link href={`/editor/${state.id}/domain`} aria-label="Domain">
+                    <Globe2 className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
               <Button
                 variant={state.isPublished ? 'outline' : 'default'}
                 size="sm"

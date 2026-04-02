@@ -108,7 +108,7 @@ function normalizeProjectBullets(data: Record<string, unknown>): Record<string, 
   data.projects = data.projects.map((item) => {
     if (!item || typeof item !== 'object') return item;
     const p = item as Record<string, unknown>;
-    let bullets = Array.isArray(p.bullets)
+    const bullets = Array.isArray(p.bullets)
       ? p.bullets.map((b) => String(b).trim()).filter(Boolean)
       : [];
     const desc = typeof p.description === 'string' ? p.description.trim() : '';

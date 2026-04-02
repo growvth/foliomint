@@ -1,13 +1,18 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Fraunces, Instrument_Sans, JetBrains_Mono } from 'next/font/google';
 
 import { Providers } from '@/components/providers';
 
 import './globals.css';
 
-const fontSans = Inter({
+const fontSans = Instrument_Sans({
   subsets: ['latin'],
   variable: '--font-sans',
+});
+
+const fontDisplay = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-display',
 });
 
 const fontMono = JetBrains_Mono({
@@ -67,7 +72,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${fontSans.variable} ${fontMono.variable} font-sans`}>
+      <body
+        className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} font-sans bg-aurora bg-grain`}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>
