@@ -5,9 +5,7 @@ import { and, eq } from 'drizzle-orm';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-import { PortfolioAmbientBg } from '@/components/domain/portfolio-ambient';
 import { PortfolioPublicFooter } from '@/components/domain/portfolio-public-footer';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { db } from '@/lib/db';
 import { blogPosts } from '@/lib/db/schema';
 import {
@@ -16,7 +14,6 @@ import {
   portfolioHeaderRuleClass,
   portfolioNavPillClass,
   portfolioReadingColumnClass,
-  portfolioShellClass,
 } from '@/lib/portfolio-public-ui';
 import { getPublishedPortfolioBySlug } from '@/lib/portfolio-public';
 import { cn } from '@/lib/utils';
@@ -77,51 +74,47 @@ export default async function BlogPostPage({ params }: Props) {
   const neu = portfolio.theme === 'neubrutalism';
 
   return (
-    <div className={portfolioShellClass(neu)}>
-      {!neu && <PortfolioAmbientBg />}
-      <div className="fixed right-4 top-4 z-50">
-        <ThemeToggle />
-      </div>
+    <article className={cn('portfolio-surface', portfolioContentContainerClass())}>
+      <div className={portfolioReadingColumnClass()}>
+        <Link href={`/${params.slug}/blog`} className={portfolioNavPillClass(neu)}>
+          ← All posts
+        </Link>
 
-      <article className={cn('portfolio-surface', portfolioContentContainerClass())}>
-        <div className={portfolioReadingColumnClass()}>
-          <Link href={`/${params.slug}/blog`} className={portfolioNavPillClass(neu)}>
-            ← All posts
-          </Link>
-
-          <header className={cn('mt-10', portfolioHeaderRuleClass(neu))}>
-            <p className={portfolioEyebrowClass(neu)}>Post</p>
-            <h1
-              className={cn(
-                'mt-3 font-display text-[clamp(1.75rem,3vw+1rem,2.75rem)] font-semibold leading-tight tracking-tight',
-                neu && 'uppercase',
-              )}
-            >
-              {post.title}
-            </h1>
-            {post.publishedAt && (
-              <p className="mt-4 text-sm font-medium tabular-nums text-muted-foreground">
-                {new Date(post.publishedAt).toLocaleDateString(undefined, {
-                  dateStyle: 'long',
-                })}
-              </p>
-            )}
-          </header>
-
-          <div
+        <header className={cn('mt-10', portfolioHeaderRuleClass(neu))}>
+          <p className={portfolioEyebrowClass(neu)}>Post</p>
+          <h1
             className={cn(
-              'prose prose-neutral prose-lg dark:prose-invert mt-12 max-w-none',
-              'prose-headings:font-sans prose-headings:tracking-tight',
-              neu &&
-                'prose-headings:uppercase prose-a:font-bold prose-a:text-foreground prose-a:no-underline',
+              'mt-3 text-[clamp(1.75rem,3vw+1rem,2.75rem)] font-semibold leading-tight tracking-tight text-zinc-950 dark:text-zinc-50',
+              neu && 'uppercase',
             )}
           >
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
-          </div>
+            {post.title}
+          </h1>
+          {post.publishedAt && (
+            <p className="mt-4 text-sm font-medium tabular-nums text-zinc-600 dark:text-zinc-500">
+              {new Date(post.publishedAt).toLocaleDateString(undefined, {
+                dateStyle: 'long',
+              })}
+            </p>
+          )}
+        </header>
 
-          <PortfolioPublicFooter neu={neu} label="Blog" />
+        <div
+          className={cn(
+            'prose prose-neutral prose-lg mt-12 max-w-none dark:prose-invert',
+            'prose-headings:tracking-tight prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100',
+            'prose-p:text-zinc-700 dark:prose-p:text-zinc-300',
+            'prose-li:text-zinc-700 dark:prose-li:text-zinc-300',
+            'prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100',
+            'prose-a:font-semibold prose-a:text-[var(--portfolio-accent)] prose-a:no-underline hover:prose-a:underline',
+            neu && 'prose-headings:uppercase',
+          )}
+        >
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
         </div>
-      </article>
-    </div>
+
+        <PortfolioPublicFooter neu={neu} label="Blog" />
+      </div>
+    </article>
   );
 }

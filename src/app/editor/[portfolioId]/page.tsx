@@ -8,7 +8,16 @@ import { BookOpen, Globe2, Save, Eye, Globe, Loader2, Plus, Trash2 } from 'lucid
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+  EditorField,
+  EditorFormPanel,
+  EditorSkillsField,
+  editorMonoControlClass,
+} from '@/components/domain/editor-form-ui';
+import { EditorLivePreview } from '@/components/domain/editor-live-preview';
 import { Navbar } from '@/components/domain/navbar';
+import { normalizePortfolioAccent } from '@/lib/portfolio-accent';
+import { cn } from '@/lib/utils';
 import type { PortfolioContent } from '@/types';
 
 interface EditorState {
@@ -16,6 +25,7 @@ interface EditorState {
   slug: string;
   title: string;
   theme: string;
+  accentColor: string | null;
   isPublished: boolean;
   content: PortfolioContent | null;
 }
@@ -51,6 +61,7 @@ export default function EditorPage() {
           slug: data.slug,
           title: data.title,
           theme: data.theme,
+          accentColor: data.accentColor ?? null,
           isPublished: data.isPublished,
           content: data.content,
         });
@@ -79,6 +90,7 @@ export default function EditorPage() {
         body: JSON.stringify({
           title: next.title,
           theme: next.theme,
+          accentColor: next.accentColor,
           isPublished: next.isPublished,
           content: next.content,
         }),
@@ -122,8 +134,15 @@ export default function EditorPage() {
     );
   };
 
-  const textareaClass =
-    'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+  const previewCardClass = cn(
+    'editor-form-card shadow-sm hover:translate-y-0 hover:shadow-md before:hidden dark:hover:shadow-black/20',
+  );
+  const editorCardTitleClass = 'font-sans text-base font-semibold tracking-tight text-foreground';
+  const editorRepeatItemClass = cn('editor-nested-card rounded-lg border-2 border-border p-4 dark:border-white/10');
+
+  const monoInput = (extra?: string) => cn(editorMonoControlClass, 'h-10', extra);
+  const monoTextarea = (extra?: string) =>
+    cn(editorMonoControlClass, 'min-h-[88px] resize-y', extra);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -223,201 +242,237 @@ export default function EditorPage() {
 
         {/* Editor content */}
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="grid gap-8 lg:grid-cols-2">
+          <div className="editor-workspace grid gap-8 lg:grid-cols-2">
             {/* Form side */}
             <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Personal Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium">Portfolio title</label>
+              <EditorFormPanel title="Personal info">
+                <EditorField
+                  id="editor-accent-color"
+                  label="Portfolio accent"
+                  hint="Used for highlights and links on your public site. Visitors switch light/dark with the toggle on the published page (independent of FolioMint dashboard theme)."
+                >
+                  <div className="flex flex-wrap items-center gap-3">
+                    <input
+                      type="color"
+                      aria-label="Pick accent color"
+                      className="h-10 w-14 cursor-pointer rounded-md border border-input bg-background p-1"
+                      value={normalizePortfolioAccent(state.accentColor)}
+                      onChange={(e) => void handleSave({ accentColor: e.target.value })}
+                      disabled={saving}
+                    />
                     <Input
-                      value={state.title}
+                      id="editor-accent-color-hex"
+                      className={monoInput('max-w-[9.5rem]')}
+                      value={state.accentColor ?? ''}
+                      placeholder="#34d399"
+                      spellCheck={false}
                       onChange={(e) =>
-                        setState((prev) => (prev ? { ...prev, title: e.target.value } : prev))
+                        setState((prev) => (prev ? { ...prev, accentColor: e.target.value || null } : prev))
                       }
-                    />
-                  </div>
-                  {content && (
-                    <>
-                      <div>
-                        <label className="mb-1.5 block text-sm font-medium">Full Name</label>
-                        <Input
-                          value={content.name}
-                          onChange={(e) =>
-                            setState((prev) =>
-                              prev && prev.content
-                                ? {
-                                    ...prev,
-                                    content: { ...prev.content, name: e.target.value },
-                                  }
-                                : prev,
-                            )
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-1.5 block text-sm font-medium">Profile image URL</label>
-                        <Input
-                          value={content.profileImageUrl ?? ''}
-                          onChange={(e) =>
-                            updateContent((c) => ({
-                              ...c,
-                              profileImageUrl: e.target.value || undefined,
-                            }))
-                          }
-                          placeholder="https://example.com/me.jpg"
-                        />
-                      </div>
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div>
-                          <label className="mb-1.5 block text-sm font-medium">Email</label>
-                          <Input
-                            value={content.email ?? ''}
-                            onChange={(e) =>
-                              updateContent((c) => ({ ...c, email: e.target.value || undefined }))
-                            }
-                          />
-                        </div>
-                        <div>
-                          <label className="mb-1.5 block text-sm font-medium">Phone</label>
-                          <Input
-                            value={content.phone ?? ''}
-                            onChange={(e) =>
-                              updateContent((c) => ({ ...c, phone: e.target.value || undefined }))
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="mb-1.5 block text-sm font-medium">Location</label>
-                        <Input
-                          value={content.location ?? ''}
-                          onChange={(e) =>
-                            updateContent((c) => ({ ...c, location: e.target.value || undefined }))
-                          }
-                        />
-                      </div>
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div>
-                          <label className="mb-1.5 block text-sm font-medium">Website</label>
-                          <Input
-                            value={content.website ?? ''}
-                            onChange={(e) =>
-                              updateContent((c) => ({ ...c, website: e.target.value || undefined }))
-                            }
-                          />
-                        </div>
-                        <div>
-                          <label className="mb-1.5 block text-sm font-medium">LinkedIn</label>
-                          <Input
-                            value={content.linkedin ?? ''}
-                            onChange={(e) =>
-                              updateContent((c) => ({ ...c, linkedin: e.target.value || undefined }))
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="mb-1.5 block text-sm font-medium">GitHub</label>
-                        <Input
-                          value={content.github ?? ''}
-                          onChange={(e) =>
-                            updateContent((c) => ({ ...c, github: e.target.value || undefined }))
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-1.5 block text-sm font-medium">Bio</label>
-                        <textarea
-                          className={textareaClass}
-                          value={content.bio ?? ''}
-                          onChange={(e) =>
-                            updateContent((c) => ({ ...c, bio: e.target.value || undefined }))
-                          }
-                          placeholder="A brief professional summary..."
-                        />
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Skills</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {content ? (
-                    <textarea
-                      className={textareaClass}
-                      value={content.skills.join(', ')}
-                      onChange={(e) => {
-                        const skills = e.target.value
-                          .split(',')
-                          .map((s) => s.trim())
-                          .filter(Boolean);
-                        setState((prev) =>
-                          prev && prev.content
-                            ? { ...prev, content: { ...prev.content, skills } }
-                            : prev,
-                        );
+                      onBlur={(e) => {
+                        const v = e.target.value.trim() || null;
+                        void handleSave({ accentColor: v });
                       }}
-                      placeholder="comma, separated, skills"
+                      disabled={saving}
                     />
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Skills editor will load here from parsed resume data.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Experience</CardTitle>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        updateContent((c) => ({
-                          ...c,
-                          experience: [
-                            ...c.experience,
-                            { company: '', role: '', startDate: '', bullets: [], endDate: '', location: '' },
-                          ],
-                        }))
-                      }
-                    >
-                      <Plus className="mr-1 h-4 w-4" />
-                      Add
-                    </Button>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  {content && content.experience.length > 0 ? (
-                    <div className="space-y-4">
-                      {content.experience.map((exp, idx) => (
-                        <div key={`${exp.company}-${exp.role}-${idx}`} className="rounded-md border bg-muted/40 p-3 text-xs">
-                          <div className="mb-2 flex justify-end">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() =>
-                                updateContent((c) => ({
-                                  ...c,
-                                  experience: c.experience.filter((_, i) => i !== idx),
-                                }))
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="grid gap-2 sm:grid-cols-2">
+                </EditorField>
+                <EditorField
+                  id="editor-portfolio-title"
+                  label="Portfolio title"
+                  hint="Shown in your dashboard and browser tab; can differ from your display name."
+                >
+                  <Input
+                    id="editor-portfolio-title"
+                    value={state.title}
+                    onChange={(e) => setState((prev) => (prev ? { ...prev, title: e.target.value } : prev))}
+                    className={monoInput()}
+                  />
+                </EditorField>
+                {content && (
+                  <>
+                    <EditorField id="editor-full-name" label="Display name" hint="Your name on the public portfolio.">
+                      <Input
+                        id="editor-full-name"
+                        value={content.name}
+                        onChange={(e) =>
+                          setState((prev) =>
+                            prev && prev.content
+                              ? { ...prev, content: { ...prev.content, name: e.target.value } }
+                              : prev,
+                          )
+                        }
+                        className={monoInput()}
+                      />
+                    </EditorField>
+                    <EditorField
+                      id="editor-profile-image"
+                      label="Profile image URL"
+                      hint="Square photo works best. Paste a direct image link (https://…)."
+                    >
+                      <Input
+                        id="editor-profile-image"
+                        value={content.profileImageUrl ?? ''}
+                        onChange={(e) =>
+                          updateContent((c) => ({
+                            ...c,
+                            profileImageUrl: e.target.value || undefined,
+                          }))
+                        }
+                        placeholder="https://example.com/me.jpg"
+                        className={monoInput()}
+                      />
+                    </EditorField>
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <EditorField id="editor-email" label="Email">
+                        <Input
+                          id="editor-email"
+                          type="email"
+                          value={content.email ?? ''}
+                          onChange={(e) =>
+                            updateContent((c) => ({ ...c, email: e.target.value || undefined }))
+                          }
+                          className={monoInput()}
+                        />
+                      </EditorField>
+                      <EditorField id="editor-phone" label="Phone">
+                        <Input
+                          id="editor-phone"
+                          value={content.phone ?? ''}
+                          onChange={(e) =>
+                            updateContent((c) => ({ ...c, phone: e.target.value || undefined }))
+                          }
+                          className={monoInput()}
+                        />
+                      </EditorField>
+                    </div>
+                    <EditorField id="editor-location" label="Location">
+                      <Input
+                        id="editor-location"
+                        value={content.location ?? ''}
+                        onChange={(e) =>
+                          updateContent((c) => ({ ...c, location: e.target.value || undefined }))
+                        }
+                        className={monoInput()}
+                      />
+                    </EditorField>
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <EditorField id="editor-website" label="Website">
+                        <Input
+                          id="editor-website"
+                          value={content.website ?? ''}
+                          onChange={(e) =>
+                            updateContent((c) => ({ ...c, website: e.target.value || undefined }))
+                          }
+                          className={monoInput()}
+                        />
+                      </EditorField>
+                      <EditorField id="editor-linkedin" label="LinkedIn">
+                        <Input
+                          id="editor-linkedin"
+                          value={content.linkedin ?? ''}
+                          onChange={(e) =>
+                            updateContent((c) => ({ ...c, linkedin: e.target.value || undefined }))
+                          }
+                          className={monoInput()}
+                        />
+                      </EditorField>
+                    </div>
+                    <EditorField id="editor-github" label="GitHub">
+                      <Input
+                        id="editor-github"
+                        value={content.github ?? ''}
+                        onChange={(e) =>
+                          updateContent((c) => ({ ...c, github: e.target.value || undefined }))
+                        }
+                        className={monoInput()}
+                      />
+                    </EditorField>
+                    <EditorField
+                      id="editor-bio"
+                      label="About"
+                      hint="Short summary for your portfolio. Blank lines create new paragraphs."
+                    >
+                      <textarea
+                        id="editor-bio"
+                        className={monoTextarea('min-h-[120px]')}
+                        value={content.bio ?? ''}
+                        onChange={(e) =>
+                          updateContent((c) => ({ ...c, bio: e.target.value || undefined }))
+                        }
+                        placeholder="A brief professional summary…"
+                      />
+                    </EditorField>
+                  </>
+                )}
+              </EditorFormPanel>
+
+              <EditorFormPanel title="Skills">
+                {content ? (
+                  <EditorSkillsField
+                    skills={content.skills}
+                    onChange={(skills) =>
+                      setState((prev) =>
+                        prev && prev.content ? { ...prev, content: { ...prev.content, skills } } : prev,
+                      )
+                    }
+                  />
+                ) : (
+                  <p className="font-mono text-sm text-muted-foreground">
+                    Skills will appear here after your resume is parsed.
+                  </p>
+                )}
+              </EditorFormPanel>
+
+              <EditorFormPanel
+                title="Experience"
+                actions={
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="font-mono text-xs uppercase"
+                    onClick={() =>
+                      updateContent((c) => ({
+                        ...c,
+                        experience: [
+                          ...c.experience,
+                          { company: '', role: '', startDate: '', bullets: [], endDate: '', location: '' },
+                        ],
+                      }))
+                    }
+                  >
+                    <Plus className="mr-1 h-4 w-4" />
+                    Add role
+                  </Button>
+                }
+              >
+                {content && content.experience.length > 0 ? (
+                  <div className="space-y-5">
+                    {content.experience.map((exp, idx) => (
+                      <div key={`editor-exp-${idx}`} className={editorRepeatItemClass}>
+                        <div className="mb-4 flex items-center justify-between gap-2 border-b border-border/60 pb-3 dark:border-white/10">
+                          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Role {idx + 1}
+                          </span>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="shrink-0"
+                            onClick={() =>
+                              updateContent((c) => ({
+                                ...c,
+                                experience: c.experience.filter((_, i) => i !== idx),
+                              }))
+                            }
+                            aria-label="Remove this role"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="grid gap-5 sm:grid-cols-2">
+                          <EditorField id={`editor-exp-${idx}-company`} label="Company / organization">
                             <Input
+                              id={`editor-exp-${idx}-company`}
                               value={exp.company}
                               onChange={(e) =>
                                 updateContent((c) => ({
@@ -427,9 +482,12 @@ export default function EditorPage() {
                                   ),
                                 }))
                               }
-                              placeholder="Company"
+                              className={monoInput()}
                             />
+                          </EditorField>
+                          <EditorField id={`editor-exp-${idx}-role`} label="Job title">
                             <Input
+                              id={`editor-exp-${idx}-role`}
                               value={exp.role}
                               onChange={(e) =>
                                 updateContent((c) => ({
@@ -439,11 +497,14 @@ export default function EditorPage() {
                                   ),
                                 }))
                               }
-                              placeholder="Role"
+                              className={monoInput()}
                             />
-                          </div>
-                          <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                          </EditorField>
+                        </div>
+                        <div className="mt-4 grid gap-5 sm:grid-cols-3">
+                          <EditorField id={`editor-exp-${idx}-start`} label="Start date" hint="e.g. Jan 2022">
                             <Input
+                              id={`editor-exp-${idx}-start`}
                               value={exp.startDate}
                               onChange={(e) =>
                                 updateContent((c) => ({
@@ -453,9 +514,12 @@ export default function EditorPage() {
                                   ),
                                 }))
                               }
-                              placeholder="Start date"
+                              className={monoInput()}
                             />
+                          </EditorField>
+                          <EditorField id={`editor-exp-${idx}-end`} label="End date" hint="Leave blank if current">
                             <Input
+                              id={`editor-exp-${idx}-end`}
                               value={exp.endDate ?? ''}
                               onChange={(e) =>
                                 updateContent((c) => ({
@@ -465,9 +529,12 @@ export default function EditorPage() {
                                   ),
                                 }))
                               }
-                              placeholder="End date"
+                              className={monoInput()}
                             />
+                          </EditorField>
+                          <EditorField id={`editor-exp-${idx}-loc`} label="Location" hint="City, remote, etc.">
                             <Input
+                              id={`editor-exp-${idx}-loc`}
                               value={exp.location ?? ''}
                               onChange={(e) =>
                                 updateContent((c) => ({
@@ -477,11 +544,18 @@ export default function EditorPage() {
                                   ),
                                 }))
                               }
-                              placeholder="Location"
+                              className={monoInput()}
                             />
-                          </div>
+                          </EditorField>
+                        </div>
+                        <EditorField
+                          id={`editor-exp-${idx}-bullets`}
+                          label="Highlights"
+                          hint="One achievement or responsibility per line."
+                        >
                           <textarea
-                            className={`${textareaClass} mt-2 min-h-[72px]`}
+                            id={`editor-exp-${idx}-bullets`}
+                            className={monoTextarea('min-h-[100px]')}
                             value={(exp.bullets ?? []).join('\n')}
                             onChange={(e) =>
                               updateContent((c) => ({
@@ -499,62 +573,67 @@ export default function EditorPage() {
                                 ),
                               }))
                             }
-                            placeholder="One bullet per line"
                           />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No experience entries were detected in your resume.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Education</CardTitle>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        updateContent((c) => ({
-                          ...c,
-                          education: [
-                            ...c.education,
-                            { institution: '', degree: '', startDate: '', endDate: '', field: '', gpa: '' },
-                          ],
-                        }))
-                      }
-                    >
-                      <Plus className="mr-1 h-4 w-4" />
-                      Add
-                    </Button>
+                        </EditorField>
+                      </div>
+                    ))}
                   </div>
-                </CardHeader>
-                <CardContent>
-                  {content && content.education.length > 0 ? (
-                    <div className="space-y-3">
-                      {content.education.map((edu, idx) => (
-                        <div key={`${edu.institution}-${edu.degree}-${idx}`} className="rounded-md border bg-muted/40 p-3 text-xs">
-                          <div className="mb-2 flex justify-end">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() =>
-                                updateContent((c) => ({
-                                  ...c,
-                                  education: c.education.filter((_, i) => i !== idx),
-                                }))
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="grid gap-2 sm:grid-cols-2">
+                ) : (
+                  <p className="font-mono text-sm text-muted-foreground">
+                    No roles yet. Add one or re-parse your resume.
+                  </p>
+                )}
+              </EditorFormPanel>
+
+              <EditorFormPanel
+                title="Education"
+                actions={
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="font-mono text-xs uppercase"
+                    onClick={() =>
+                      updateContent((c) => ({
+                        ...c,
+                        education: [
+                          ...c.education,
+                          { institution: '', degree: '', startDate: '', endDate: '', field: '', gpa: '' },
+                        ],
+                      }))
+                    }
+                  >
+                    <Plus className="mr-1 h-4 w-4" />
+                    Add school
+                  </Button>
+                }
+              >
+                {content && content.education.length > 0 ? (
+                  <div className="space-y-5">
+                    {content.education.map((edu, idx) => (
+                      <div key={`editor-edu-${idx}`} className={editorRepeatItemClass}>
+                        <div className="mb-4 flex items-center justify-between gap-2 border-b border-border/60 pb-3 dark:border-white/10">
+                          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                            School {idx + 1}
+                          </span>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="shrink-0"
+                            onClick={() =>
+                              updateContent((c) => ({
+                                ...c,
+                                education: c.education.filter((_, i) => i !== idx),
+                              }))
+                            }
+                            aria-label="Remove this school"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="grid gap-5 sm:grid-cols-2">
+                          <EditorField id={`editor-edu-${idx}-inst`} label="School / university">
                             <Input
+                              id={`editor-edu-${idx}-inst`}
                               value={edu.institution}
                               onChange={(e) =>
                                 updateContent((c) => ({
@@ -564,9 +643,12 @@ export default function EditorPage() {
                                   ),
                                 }))
                               }
-                              placeholder="Institution"
+                              className={monoInput()}
                             />
+                          </EditorField>
+                          <EditorField id={`editor-edu-${idx}-degree`} label="Degree" hint="e.g. B.S., M.Eng.">
                             <Input
+                              id={`editor-edu-${idx}-degree`}
                               value={edu.degree}
                               onChange={(e) =>
                                 updateContent((c) => ({
@@ -576,11 +658,18 @@ export default function EditorPage() {
                                   ),
                                 }))
                               }
-                              placeholder="Degree"
+                              className={monoInput()}
                             />
-                          </div>
-                          <div className="mt-2 grid gap-2 sm:grid-cols-4">
+                          </EditorField>
+                        </div>
+                        <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                          <EditorField
+                            id={`editor-edu-${idx}-field`}
+                            label="Field of study"
+                            hint="Major, concentration, or program (optional)."
+                          >
                             <Input
+                              id={`editor-edu-${idx}-field`}
                               value={edu.field ?? ''}
                               onChange={(e) =>
                                 updateContent((c) => ({
@@ -590,9 +679,12 @@ export default function EditorPage() {
                                   ),
                                 }))
                               }
-                              placeholder="Field"
+                              className={monoInput()}
                             />
+                          </EditorField>
+                          <EditorField id={`editor-edu-${idx}-start`} label="Start">
                             <Input
+                              id={`editor-edu-${idx}-start`}
                               value={edu.startDate}
                               onChange={(e) =>
                                 updateContent((c) => ({
@@ -602,9 +694,12 @@ export default function EditorPage() {
                                   ),
                                 }))
                               }
-                              placeholder="Start"
+                              className={monoInput()}
                             />
+                          </EditorField>
+                          <EditorField id={`editor-edu-${idx}-end`} label="End">
                             <Input
+                              id={`editor-edu-${idx}-end`}
                               value={edu.endDate ?? ''}
                               onChange={(e) =>
                                 updateContent((c) => ({
@@ -614,9 +709,12 @@ export default function EditorPage() {
                                   ),
                                 }))
                               }
-                              placeholder="End"
+                              className={monoInput()}
                             />
+                          </EditorField>
+                          <EditorField id={`editor-edu-${idx}-gpa`} label="GPA" hint="Optional">
                             <Input
+                              id={`editor-edu-${idx}-gpa`}
                               value={edu.gpa ?? ''}
                               onChange={(e) =>
                                 updateContent((c) => ({
@@ -626,60 +724,66 @@ export default function EditorPage() {
                                   ),
                                 }))
                               }
-                              placeholder="GPA"
+                              className={monoInput()}
                             />
-                          </div>
+                          </EditorField>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No education entries were detected in your resume.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Projects</CardTitle>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        updateContent((c) => ({
-                          ...c,
-                          projects: [...c.projects, { name: '', description: '', url: '', technologies: [], bullets: [] }],
-                        }))
-                      }
-                    >
-                      <Plus className="mr-1 h-4 w-4" />
-                      Add
-                    </Button>
+                      </div>
+                    ))}
                   </div>
-                </CardHeader>
-                <CardContent>
-                  {content && content.projects.length > 0 ? (
-                    <div className="space-y-4">
-                      {content.projects.map((project, idx) => (
-                        <div key={`${project.name}-${idx}`} className="rounded-md border bg-muted/40 p-3 text-xs">
-                          <div className="mb-2 flex justify-end">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() =>
-                                updateContent((c) => ({
-                                  ...c,
-                                  projects: c.projects.filter((_, i) => i !== idx),
-                                }))
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="grid gap-2 sm:grid-cols-2">
+                ) : (
+                  <p className="font-mono text-sm text-muted-foreground">
+                    No schools yet. Add one or re-parse your resume.
+                  </p>
+                )}
+              </EditorFormPanel>
+
+              <EditorFormPanel
+                title="Projects"
+                actions={
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="font-mono text-xs uppercase"
+                    onClick={() =>
+                      updateContent((c) => ({
+                        ...c,
+                        projects: [...c.projects, { name: '', description: '', url: '', technologies: [], bullets: [] }],
+                      }))
+                    }
+                  >
+                    <Plus className="mr-1 h-4 w-4" />
+                    Add project
+                  </Button>
+                }
+              >
+                {content && content.projects.length > 0 ? (
+                  <div className="space-y-5">
+                    {content.projects.map((project, idx) => (
+                      <div key={`editor-proj-${idx}`} className={editorRepeatItemClass}>
+                        <div className="mb-4 flex items-center justify-between gap-2 border-b border-border/60 pb-3 dark:border-white/10">
+                          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Project {idx + 1}
+                          </span>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="shrink-0"
+                            onClick={() =>
+                              updateContent((c) => ({
+                                ...c,
+                                projects: c.projects.filter((_, i) => i !== idx),
+                              }))
+                            }
+                            aria-label="Remove this project"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="grid gap-5 sm:grid-cols-2">
+                          <EditorField id={`editor-proj-${idx}-name`} label="Project name">
                             <Input
+                              id={`editor-proj-${idx}-name`}
                               value={project.name}
                               onChange={(e) =>
                                 updateContent((c) => ({
@@ -689,9 +793,12 @@ export default function EditorPage() {
                                   ),
                                 }))
                               }
-                              placeholder="Project name"
+                              className={monoInput()}
                             />
+                          </EditorField>
+                          <EditorField id={`editor-proj-${idx}-url`} label="Link" hint="Repo, demo, or case study URL.">
                             <Input
+                              id={`editor-proj-${idx}-url`}
                               value={project.url ?? ''}
                               onChange={(e) =>
                                 updateContent((c) => ({
@@ -701,11 +808,14 @@ export default function EditorPage() {
                                   ),
                                 }))
                               }
-                              placeholder="Project URL"
+                              className={monoInput()}
                             />
-                          </div>
+                          </EditorField>
+                        </div>
+                        <EditorField id={`editor-proj-${idx}-desc`} label="Summary" hint="One or two sentences.">
                           <textarea
-                            className={`${textareaClass} mt-2 min-h-[56px]`}
+                            id={`editor-proj-${idx}-desc`}
+                            className={monoTextarea('min-h-[72px]')}
                             value={project.description ?? ''}
                             onChange={(e) =>
                               updateContent((c) => ({
@@ -715,10 +825,15 @@ export default function EditorPage() {
                                 ),
                               }))
                             }
-                            placeholder="Short description"
                           />
+                        </EditorField>
+                        <EditorField
+                          id={`editor-proj-${idx}-tech`}
+                          label="Technologies"
+                          hint="Comma-separated (shown as tags on your portfolio)."
+                        >
                           <Input
-                            className="mt-2"
+                            id={`editor-proj-${idx}-tech`}
                             value={(project.technologies ?? []).join(', ')}
                             onChange={(e) =>
                               updateContent((c) => ({
@@ -736,10 +851,17 @@ export default function EditorPage() {
                                 ),
                               }))
                             }
-                            placeholder="Technologies (comma-separated)"
+                            className={monoInput()}
                           />
+                        </EditorField>
+                        <EditorField
+                          id={`editor-proj-${idx}-bullets`}
+                          label="Details"
+                          hint="Extra bullets; one per line."
+                        >
                           <textarea
-                            className={`${textareaClass} mt-2 min-h-[72px]`}
+                            id={`editor-proj-${idx}-bullets`}
+                            className={monoTextarea('min-h-[88px]')}
                             value={(project.bullets ?? []).join('\n')}
                             onChange={(e) =>
                               updateContent((c) => ({
@@ -757,114 +879,125 @@ export default function EditorPage() {
                                 ),
                               }))
                             }
-                            placeholder="One bullet per line"
                           />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No project entries were detected in your resume.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Awards</CardTitle>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        updateContent((c) => ({
-                          ...c,
-                          awards: [...(c.awards ?? []), ''],
-                        }))
-                      }
-                    >
-                      <Plus className="mr-1 h-4 w-4" />
-                      Add
-                    </Button>
+                        </EditorField>
+                      </div>
+                    ))}
                   </div>
-                </CardHeader>
-                <CardContent>
-                  {content && content.awards && content.awards.length > 0 ? (
-                    <div className="space-y-2">
-                      {content.awards.map((a, i) => (
-                        <div key={i} className="flex gap-2">
-                          <Input
-                            value={a}
-                            onChange={(e) =>
-                              updateContent((c) => ({
-                                ...c,
-                                awards: (c.awards ?? []).map((it, idx) =>
-                                  idx === i ? e.target.value : it,
-                                ),
-                              }))
-                            }
-                          />
+                ) : (
+                  <p className="font-mono text-sm text-muted-foreground">
+                    No projects yet. Add one or re-parse your resume.
+                  </p>
+                )}
+              </EditorFormPanel>
+
+              <EditorFormPanel
+                title="Awards"
+                actions={
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="font-mono text-xs uppercase"
+                    onClick={() =>
+                      updateContent((c) => ({
+                        ...c,
+                        awards: [...(c.awards ?? []), ''],
+                      }))
+                    }
+                  >
+                    <Plus className="mr-1 h-4 w-4" />
+                    Add award
+                  </Button>
+                }
+              >
+                {content && content.awards && content.awards.length > 0 ? (
+                  <div className="space-y-4">
+                    {content.awards.map((a, i) => (
+                      <div key={`editor-award-${i}`} className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                        <div className="min-w-0 flex-1">
+                          <EditorField id={`editor-award-${i}`} label={`Award ${i + 1}`}>
+                            <Input
+                              id={`editor-award-${i}`}
+                              value={a}
+                              onChange={(e) =>
+                                updateContent((c) => ({
+                                  ...c,
+                                  awards: (c.awards ?? []).map((it, idx) =>
+                                    idx === i ? e.target.value : it,
+                                  ),
+                                }))
+                              }
+                              className={monoInput()}
+                            />
+                          </EditorField>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="shrink-0"
+                          onClick={() =>
+                            updateContent((c) => ({
+                              ...c,
+                              awards: (c.awards ?? []).filter((_, idx) => idx !== i),
+                            }))
+                          }
+                          aria-label="Remove award"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="font-mono text-sm text-muted-foreground">No awards yet.</p>
+                )}
+              </EditorFormPanel>
+
+              <EditorFormPanel
+                title="Extracurricular"
+                actions={
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="font-mono text-xs uppercase"
+                    onClick={() =>
+                      updateContent((c) => ({
+                        ...c,
+                        extracurricular: [...(c.extracurricular ?? []), { title: '', bullets: [] }],
+                      }))
+                    }
+                  >
+                    <Plus className="mr-1 h-4 w-4" />
+                    Add block
+                  </Button>
+                }
+              >
+                {content && content.extracurricular && content.extracurricular.length > 0 ? (
+                  <div className="space-y-5">
+                    {content.extracurricular.map((block, idx) => (
+                      <div key={`editor-extra-${idx}`} className={editorRepeatItemClass}>
+                        <div className="mb-4 flex items-center justify-between gap-2 border-b border-border/60 pb-3 dark:border-white/10">
+                          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Block {idx + 1}
+                          </span>
                           <Button
                             size="icon"
                             variant="ghost"
+                            className="shrink-0"
                             onClick={() =>
                               updateContent((c) => ({
                                 ...c,
-                                awards: (c.awards ?? []).filter((_, idx) => idx !== i),
+                                extracurricular: (c.extracurricular ?? []).filter((_, i) => i !== idx),
                               }))
                             }
+                            aria-label="Remove block"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No awards listed.</p>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Extracurricular</CardTitle>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        updateContent((c) => ({
-                          ...c,
-                          extracurricular: [...(c.extracurricular ?? []), { title: '', bullets: [] }],
-                        }))
-                      }
-                    >
-                      <Plus className="mr-1 h-4 w-4" />
-                      Add
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {content && content.extracurricular && content.extracurricular.length > 0 ? (
-                    <div className="space-y-3">
-                      {content.extracurricular.map((block, idx) => (
-                        <div key={`${block.title}-${idx}`} className="rounded-md border bg-muted/40 p-3 text-xs">
-                          <div className="mb-2 flex justify-end">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() =>
-                                updateContent((c) => ({
-                                  ...c,
-                                  extracurricular: (c.extracurricular ?? []).filter((_, i) => i !== idx),
-                                }))
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                        <EditorField id={`editor-extra-${idx}-title`} label="Section heading">
                           <Input
+                            id={`editor-extra-${idx}-title`}
                             value={block.title}
                             onChange={(e) =>
                               updateContent((c) => ({
@@ -874,10 +1007,17 @@ export default function EditorPage() {
                                 ),
                               }))
                             }
-                            placeholder="Section title"
+                            className={monoInput()}
                           />
+                        </EditorField>
+                        <EditorField
+                          id={`editor-extra-${idx}-bullets`}
+                          label="Bullets"
+                          hint="One per line."
+                        >
                           <textarea
-                            className={`${textareaClass} mt-2 min-h-[72px]`}
+                            id={`editor-extra-${idx}-bullets`}
+                            className={monoTextarea('min-h-[88px]')}
                             value={block.bullets.join('\n')}
                             onChange={(e) =>
                               updateContent((c) => ({
@@ -895,56 +1035,61 @@ export default function EditorPage() {
                                 ),
                               }))
                             }
-                            placeholder="One bullet per line"
                           />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No extracurricular entries.</p>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Other sections</CardTitle>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        updateContent((c) => ({
-                          ...c,
-                          otherSections: [...(c.otherSections ?? []), { title: '', bullets: [] }],
-                        }))
-                      }
-                    >
-                      <Plus className="mr-1 h-4 w-4" />
-                      Add
-                    </Button>
+                        </EditorField>
+                      </div>
+                    ))}
                   </div>
-                </CardHeader>
-                <CardContent>
-                  {content && content.otherSections && content.otherSections.length > 0 ? (
-                    <div className="space-y-3">
-                      {content.otherSections.map((block, idx) => (
-                        <div key={`${block.title}-${idx}`} className="rounded-md border bg-muted/40 p-3 text-xs">
-                          <div className="mb-2 flex justify-end">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() =>
-                                updateContent((c) => ({
-                                  ...c,
-                                  otherSections: (c.otherSections ?? []).filter((_, i) => i !== idx),
-                                }))
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                ) : (
+                  <p className="font-mono text-sm text-muted-foreground">No extracurricular blocks yet.</p>
+                )}
+              </EditorFormPanel>
+
+              <EditorFormPanel
+                title="Other sections"
+                actions={
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="font-mono text-xs uppercase"
+                    onClick={() =>
+                      updateContent((c) => ({
+                        ...c,
+                        otherSections: [...(c.otherSections ?? []), { title: '', bullets: [] }],
+                      }))
+                    }
+                  >
+                    <Plus className="mr-1 h-4 w-4" />
+                    Add section
+                  </Button>
+                }
+              >
+                {content && content.otherSections && content.otherSections.length > 0 ? (
+                  <div className="space-y-5">
+                    {content.otherSections.map((block, idx) => (
+                      <div key={`editor-other-${idx}`} className={editorRepeatItemClass}>
+                        <div className="mb-4 flex items-center justify-between gap-2 border-b border-border/60 pb-3 dark:border-white/10">
+                          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Custom {idx + 1}
+                          </span>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="shrink-0"
+                            onClick={() =>
+                              updateContent((c) => ({
+                                ...c,
+                                otherSections: (c.otherSections ?? []).filter((_, i) => i !== idx),
+                              }))
+                            }
+                            aria-label="Remove section"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <EditorField id={`editor-other-${idx}-title`} label="Section title">
                           <Input
+                            id={`editor-other-${idx}-title`}
                             value={block.title}
                             onChange={(e) =>
                               updateContent((c) => ({
@@ -954,10 +1099,17 @@ export default function EditorPage() {
                                 ),
                               }))
                             }
-                            placeholder="Section title"
+                            className={monoInput()}
                           />
+                        </EditorField>
+                        <EditorField
+                          id={`editor-other-${idx}-bullets`}
+                          label="Content"
+                          hint="One bullet per line."
+                        >
                           <textarea
-                            className={`${textareaClass} mt-2 min-h-[72px]`}
+                            id={`editor-other-${idx}-bullets`}
+                            className={monoTextarea('min-h-[88px]')}
                             value={block.bullets.join('\n')}
                             onChange={(e) =>
                               updateContent((c) => ({
@@ -975,16 +1127,15 @@ export default function EditorPage() {
                                 ),
                               }))
                             }
-                            placeholder="One bullet per line"
                           />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No additional sections.</p>
-                  )}
-                </CardContent>
-              </Card>
+                        </EditorField>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="font-mono text-sm text-muted-foreground">No extra sections yet.</p>
+                )}
+              </EditorFormPanel>
 
               {error && (
                 <p className="text-sm text-destructive">
@@ -996,35 +1147,28 @@ export default function EditorPage() {
             {/* Preview side */}
             <div className="hidden lg:block">
               <div className="sticky top-32">
-                <Card className="min-h-[600px]">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Live Preview</CardTitle>
+                <Card
+                  className={cn(
+                    previewCardClass,
+                    'flex max-h-[min(720px,calc(100vh-8.5rem))] min-h-[280px] flex-col overflow-hidden',
+                  )}
+                >
+                  <CardHeader className="shrink-0 space-y-1 border-b border-border/60 bg-background/80 pb-4 dark:border-white/10">
+                    <CardTitle className={editorCardTitleClass}>Live Preview</CardTitle>
+                    <p className="font-sans text-xs text-muted-foreground">
+                      Uses your selected theme ({state.theme === 'neubrutalism' ? 'Neubrutalism' : 'Classic'}). Canvas
+                      light/dark follows your FolioMint theme toggle so it matches what visitors see after they switch
+                      modes on the live site.
+                    </p>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <div>
-                        {content?.profileImageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={content.profileImageUrl}
-                            alt={content.name || state.title}
-                            className="mb-3 h-16 w-16 rounded-full object-cover"
-                          />
-                        ) : null}
-                        <h2 className="text-2xl font-bold">{content?.name || state.title || 'Untitled portfolio'}</h2>
-                        {content?.bio && (
-                          <p className="mt-2 text-sm text-muted-foreground">{content.bio}</p>
-                        )}
-                      </div>
-                      {content && content.skills.length > 0 && (
-                        <div>
-                          <h3 className="text-sm font-semibold">Skills</h3>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            {content.skills.join(' • ')}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                  <CardContent className="min-h-0 flex-1 overflow-y-auto bg-background px-4 py-4 sm:px-5">
+                    <EditorLivePreview
+                      content={content}
+                      portfolioTitle={state.title}
+                      slug={state.slug}
+                      theme={state.theme}
+                      accentColor={state.accentColor}
+                    />
                   </CardContent>
                 </Card>
               </div>

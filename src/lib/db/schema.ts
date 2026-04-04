@@ -61,6 +61,8 @@ export const portfolios = sqliteTable('portfolios', {
   title: text('title').notNull(),
   content: text('content', { mode: 'json' }).$type<Record<string, unknown>>().notNull(),
   theme: text('theme').default('classic').notNull(),
+  /** Hex accent for public portfolio (links, chips, markers). Default applied in UI when null. */
+  accentColor: text('accent_color'),
   isPublished: integer('is_published', { mode: 'boolean' }).default(false).notNull(),
   groqConsent: integer('groq_consent', { mode: 'boolean' }).default(false).notNull(),
   customDomain: text('custom_domain'),

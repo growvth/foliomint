@@ -4,7 +4,6 @@ import { headers } from 'next/headers';
 import { and, eq, sql } from 'drizzle-orm';
 
 import { PortfolioContentView } from '@/components/domain/portfolio-content-view';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { db } from '@/lib/db';
 import { blogPosts, integrations } from '@/lib/db/schema';
 import { getPublishedPortfolioBySlug } from '@/lib/portfolio-public';
@@ -67,17 +66,12 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
   const showBlog = (blogCountRow?.c ?? 0) > 0;
 
   return (
-    <>
-      <div className="fixed right-4 top-4 z-50">
-        <ThemeToggle />
-      </div>
-      <PortfolioContentView
-        content={content}
-        slug={slug}
-        theme={portfolio.theme}
-        showBlogLink={showBlog}
-        socialLinks={socialLinks}
-      />
-    </>
+    <PortfolioContentView
+      content={content}
+      slug={slug}
+      theme={portfolio.theme}
+      showBlogLink={showBlog}
+      socialLinks={socialLinks}
+    />
   );
 }

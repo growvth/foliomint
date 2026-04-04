@@ -7,6 +7,7 @@ import { portfolios } from '@/lib/db/schema';
 import { sendPortfolioPublishedEmail } from '@/lib/email';
 import { userHasProAccess } from '@/lib/pro-access';
 import { normalizePublicDomain } from '@/lib/slug';
+import { sanitizePortfolioAccentForStorage } from '@/lib/portfolio-accent';
 import type { PortfolioContent } from '@/types';
 
 interface RouteContext {
@@ -36,6 +37,7 @@ export async function GET(_req: Request, { params }: RouteContext) {
     slug: portfolio.slug,
     title: portfolio.title,
     theme: portfolio.theme,
+    accentColor: portfolio.accentColor,
     isPublished: portfolio.isPublished,
     groqConsent: portfolio.groqConsent,
     content: portfolio.content as unknown as PortfolioContent,
@@ -70,6 +72,7 @@ export async function PATCH(req: Request, { params }: RouteContext) {
   const body = (await req.json()) as Partial<{
     title: string;
     theme: string;
+    accentColor: string | null;
     isPublished: boolean;
     content: PortfolioContent;
     customDomain: string | null;
@@ -82,6 +85,7 @@ export async function PATCH(req: Request, { params }: RouteContext) {
   const set: {
     title?: string;
     theme?: string;
+    accentColor?: string | null;
     isPublished?: boolean;
     content?: Record<string, unknown>;
     customDomain?: string | null;
@@ -96,6 +100,17 @@ export async function PATCH(req: Request, { params }: RouteContext) {
 
   if (body.theme !== undefined) {
     set.theme = body.theme;
+  }
+
+  if (body.accentColor !== undefined) {
+    const next = sanitizePortfolioAccentForStorage(body.accentColor);
+    const hadMeaningfulInput =
+      body.accentColor !== null &&
+      !(typeof body.accentColor === 'string' && body.accentColor.trim() === '');
+    if (hadMeaningfulInput && next === null) {
+      return NextResponse.json({ error: 'Invalid accent color (use #RGB or #RRGGBB)' }, { status: 400 });
+    }
+    set.accentColor = next;
   }
 
   if (typeof body.isPublished === 'boolean') {

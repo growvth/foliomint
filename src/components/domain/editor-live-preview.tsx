@@ -1,0 +1,319 @@
+'use client';
+
+import Link from 'next/link';
+
+import { PortfolioClassicMonoView } from '@/components/domain/portfolio-classic-mono-view';
+import { PortfolioPublicShell } from '@/components/domain/portfolio-public-shell';
+import { cn } from '@/lib/utils';
+import {
+  PORTFOLIO_CARD_PAD,
+  portfolioBulletDotClass,
+  portfolioBulletLineClass,
+  portfolioCardClass,
+  portfolioInlineLinkClass,
+  portfolioSectionAccentClass,
+  portfolioSectionTitleRowClass,
+  portfolioSkillChipClass,
+} from '@/lib/portfolio-public-ui';
+import type { PortfolioContent } from '@/types';
+
+function parsePortfolioDate(value?: string | null): number {
+  if (!value) return Number.NEGATIVE_INFINITY;
+  const raw = value.trim();
+  if (!raw) return Number.NEGATIVE_INFINITY;
+  if (/present|current|now/i.test(raw)) return Number.POSITIVE_INFINITY;
+  const direct = Date.parse(raw);
+  if (!Number.isNaN(direct)) return direct;
+  const yearMatch = raw.match(/\b(19|20)\d{2}\b/);
+  if (yearMatch) return Date.parse(`${yearMatch[0]}-01-01`);
+  return Number.NEGATIVE_INFINITY;
+}
+
+function sortExperienceMostRecentFirst(experience: PortfolioContent['experience']) {
+  return [...experience].sort((a, b) => {
+    const aEnd = parsePortfolioDate(a.endDate);
+    const bEnd = parsePortfolioDate(b.endDate);
+    if (aEnd !== bEnd) return bEnd - aEnd;
+    const aStart = parsePortfolioDate(a.startDate);
+    const bStart = parsePortfolioDate(b.startDate);
+    if (aStart !== bStart) return bStart - aStart;
+    return 0;
+  });
+}
+
+function SectionHeading({ children, neu }: { children: React.ReactNode; neu: boolean }) {
+  return (
+    <h2 className={cn(portfolioSectionTitleRowClass(neu), 'mb-5 text-lg sm:text-[1.35rem]')}>
+      <span className={portfolioSectionAccentClass(neu)} aria-hidden />
+      {children}
+    </h2>
+  );
+}
+
+function PortfolioBulletList({
+  items,
+  neu,
+  dense,
+}: {
+  items: string[];
+  neu: boolean;
+  dense?: boolean;
+}) {
+  return (
+    <ul className={dense ? 'space-y-1.5' : 'space-y-2'}>
+      {items.map((b, i) => (
+        <li key={i} className={cn(portfolioBulletLineClass(neu), dense && 'text-[13px] leading-relaxed')}>
+          <span className={portfolioBulletDotClass(neu)} aria-hidden />
+          <span>{b}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function NeubrutalismPreview({ content, slug }: { content: PortfolioContent; slug: string }) {
+  const neu = true;
+  const sortedExperience = sortExperienceMostRecentFirst(content.experience ?? []);
+  const displayName = content.name?.trim() || slug;
+  const initial = displayName.charAt(0).toUpperCase() || '?';
+  const card = portfolioCardClass(neu);
+  const pad = PORTFOLIO_CARD_PAD;
+
+  return (
+    <div className="text-zinc-800 dark:text-zinc-200">
+      <header className={cn('border-b border-zinc-300 pb-6 dark:border-zinc-600/80')}>
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+          <div className="shrink-0">
+            {content.profileImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={content.profileImageUrl}
+                alt={displayName}
+                className="h-20 w-20 border-4 border-zinc-900 object-cover shadow-[6px_6px_0_0_rgb(24_24_27)] dark:border-zinc-200 dark:shadow-[6px_6px_0_0_rgb(228_228_231)] sm:h-24 sm:w-24"
+              />
+            ) : (
+              <div
+                className="flex h-20 w-20 items-center justify-center border-4 border-zinc-900 bg-[var(--portfolio-accent-softer)] text-xl font-bold text-[var(--portfolio-accent)] shadow-[6px_6px_0_0_rgb(24_24_27)] dark:border-zinc-200 dark:shadow-[6px_6px_0_0_rgb(228_228_231)] sm:h-24 sm:w-24 sm:text-2xl"
+                aria-hidden
+              >
+                {initial}
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 space-y-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--portfolio-accent)]">
+              Portfolio
+            </p>
+            <h1 className="text-2xl font-semibold uppercase tracking-[0.06em] text-zinc-950 dark:text-zinc-50 sm:text-3xl">
+              {displayName}
+            </h1>
+            {content.bio && (
+              <p className="max-w-2xl text-pretty text-sm font-medium leading-relaxed text-zinc-600 dark:text-zinc-300 sm:text-base">
+                {content.bio}
+              </p>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <div className="portfolio-surface mt-10 space-y-12 sm:mt-12 sm:space-y-16 lg:mt-14 lg:space-y-20">
+        {content.skills && content.skills.length > 0 && (
+          <section>
+            <SectionHeading neu={neu}>Skills</SectionHeading>
+            <div className="flex flex-wrap gap-2">
+              {content.skills.map((skill) => (
+                <span key={skill} className={portfolioSkillChipClass(neu)}>
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {sortedExperience.length > 0 && (
+          <section>
+            <SectionHeading neu={neu}>Experience</SectionHeading>
+            <div className="space-y-4">
+              {sortedExperience.map((exp, idx) => {
+                const dateStr = `${exp.startDate}${exp.endDate ? ` – ${exp.endDate}` : ' – Present'}`;
+                return (
+                  <div key={`editor-neu-exp-${idx}`} className={cn(card, pad)}>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <h3 className="text-base font-bold uppercase leading-tight text-zinc-950 dark:text-zinc-50">
+                          {exp.role}
+                        </h3>
+                        <p className="mt-1 text-sm font-bold text-zinc-600 dark:text-zinc-500">{exp.company}</p>
+                      </div>
+                      <p className="shrink-0 border-2 border-zinc-900 bg-white px-2 py-1 text-xs font-bold text-zinc-900 dark:border-zinc-200 dark:bg-zinc-950 dark:text-zinc-100">
+                        {dateStr}
+                      </p>
+                    </div>
+                    {exp.bullets && exp.bullets.length > 0 && (
+                      <div className="mt-4 border-t-2 border-zinc-200 pt-4 dark:border-zinc-700">
+                        <PortfolioBulletList items={exp.bullets} neu={neu} dense />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {content.education && content.education.length > 0 && (
+          <section>
+            <SectionHeading neu={neu}>Education</SectionHeading>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {content.education.map((edu, idx) => (
+                <div key={`${edu.institution}-${idx}`} className={cn(card, pad)}>
+                  <h3 className="text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-100">{edu.institution}</h3>
+                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-500">
+                    {edu.degree}
+                    {edu.field ? ` · ${edu.field}` : ''}
+                  </p>
+                  <p className="mt-3 text-xs font-medium tabular-nums text-zinc-500 dark:text-zinc-600">
+                    {edu.startDate}
+                    {edu.endDate ? ` – ${edu.endDate}` : ''}
+                    {edu.gpa ? ` · GPA ${edu.gpa}` : ''}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {content.projects && content.projects.length > 0 && (
+          <section>
+            <SectionHeading neu={neu}>Projects</SectionHeading>
+            <div className="grid grid-cols-1 gap-4">
+              {content.projects.map((project, idx) => (
+                <div key={`${project.name}-${idx}`} className={cn('flex flex-col', card, pad)}>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <h3 className="text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-100">{project.name}</h3>
+                    {project.url && (
+                      <a href={project.url} className={portfolioInlineLinkClass(neu)} target="_blank" rel="noreferrer">
+                        Open →
+                      </a>
+                    )}
+                  </div>
+                  {project.description && (
+                    <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{project.description}</p>
+                  )}
+                  {project.bullets && project.bullets.length > 0 && (
+                    <div className="mt-4">
+                      <PortfolioBulletList items={project.bullets} neu={neu} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {content.awards && content.awards.filter(Boolean).length > 0 && (
+          <section>
+            <SectionHeading neu={neu}>Awards</SectionHeading>
+            <div className={cn(card, pad)}>
+              <PortfolioBulletList items={content.awards.filter(Boolean)} neu={neu} />
+            </div>
+          </section>
+        )}
+
+        {content.extracurricular && content.extracurricular.length > 0 && (
+          <section>
+            <SectionHeading neu={neu}>Extracurricular</SectionHeading>
+            <div className="space-y-4">
+              {content.extracurricular.map((block, idx) => (
+                <div key={`${block.title}-${idx}`} className={cn(card, pad)}>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{block.title}</h3>
+                  {block.bullets.length > 0 && (
+                    <div className="mt-3">
+                      <PortfolioBulletList items={block.bullets} neu={neu} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {content.otherSections && content.otherSections.length > 0 && (
+          <section className="space-y-10">
+            {content.otherSections.map((block, idx) => (
+              <div key={`${block.title}-${idx}`}>
+                <SectionHeading neu={neu}>{block.title}</SectionHeading>
+                {block.bullets.length > 0 && (
+                  <div className={cn(card, pad)}>
+                    <PortfolioBulletList items={block.bullets} neu={neu} />
+                  </div>
+                )}
+              </div>
+            ))}
+          </section>
+        )}
+      </div>
+
+      <p className="mt-8 border-t border-zinc-200 pt-4 text-center text-[10px] uppercase tracking-[0.14em] text-zinc-600 dark:border-zinc-700 dark:text-zinc-500">
+        <Link
+          href={`/${slug}`}
+          className="font-bold text-[var(--portfolio-accent)] underline decoration-2 underline-offset-4 hover:opacity-90"
+        >
+          Open published site
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+export function EditorLivePreview({
+  content,
+  portfolioTitle,
+  slug,
+  theme,
+  accentColor,
+}: {
+  content: PortfolioContent | null;
+  portfolioTitle: string;
+  slug: string;
+  theme: string;
+  accentColor: string | null;
+}) {
+  if (!content) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Content will appear here after your resume is parsed.
+      </p>
+    );
+  }
+
+  const neu = theme === 'neubrutalism';
+  const displayName = content.name?.trim() || slug;
+
+  return (
+    <PortfolioPublicShell accentColor={accentColor} embed>
+      <div className="px-3 py-3 sm:px-4 sm:py-4">
+        {neu ? (
+          <NeubrutalismPreview content={content} slug={slug} />
+        ) : (
+          <>
+            {portfolioTitle && portfolioTitle !== displayName ? (
+              <p className="mb-3 text-[11px] text-zinc-600 dark:text-zinc-500">
+                Dashboard title: <span className="font-semibold text-zinc-900 dark:text-zinc-200">{portfolioTitle}</span>
+              </p>
+            ) : null}
+            <PortfolioClassicMonoView content={content} slug={slug} showBlogLink={false} socialLinks={[]} />
+            <p className="mt-4 border-t border-zinc-200 pt-3 text-center text-[10px] uppercase tracking-wider text-zinc-600 dark:border-zinc-700 dark:text-zinc-500">
+              <Link
+                href={`/${slug}`}
+                className="font-semibold text-[var(--portfolio-accent)] underline-offset-4 hover:underline"
+              >
+                Open published site
+              </Link>
+            </p>
+          </>
+        )}
+      </div>
+    </PortfolioPublicShell>
+  );
+}

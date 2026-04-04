@@ -125,6 +125,40 @@
   }
 }
 
+/**
+ * Portfolio editor: stronger field + panel contrast in dark mode so inputs
+ * don’t blend into card surfaces (matches public portfolio card hierarchy).
+ */
+@layer components {
+  .editor-workspace .editor-form-card {
+    @apply border-border/80 bg-card;
+  }
+
+  .dark .editor-workspace .editor-form-card {
+    @apply border-white/[0.12] bg-[hsl(200_14%_12%)] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)];
+  }
+
+  .editor-workspace .editor-nested-card {
+    @apply border-border/70 bg-muted/40;
+  }
+
+  .dark .editor-workspace .editor-nested-card {
+    @apply border-white/[0.1] bg-[hsl(200_13%_10%)] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)];
+  }
+
+  .editor-workspace input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='file']),
+  .editor-workspace textarea,
+  .editor-workspace select {
+    @apply border-border/90 bg-background;
+  }
+
+  .dark .editor-workspace input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='file']),
+  .dark .editor-workspace textarea,
+  .dark .editor-workspace select {
+    @apply border-white/[0.16] bg-[hsl(200_14%_10%)] text-foreground shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)];
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -150,5 +184,17 @@
     mix-blend-mode: soft-light;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
     background-size: 180px 180px;
+  }
+
+  .portfolio-public-canvas {
+    --portfolio-accent-soft: color-mix(in srgb, var(--portfolio-accent) 18%, transparent);
+    --portfolio-accent-softer: color-mix(in srgb, var(--portfolio-accent) 10%, transparent);
+    --portfolio-accent-border: color-mix(in srgb, var(--portfolio-accent) 35%, transparent);
+  }
+
+  html.dark .portfolio-public-canvas {
+    --portfolio-accent-soft: color-mix(in srgb, var(--portfolio-accent) 22%, transparent);
+    --portfolio-accent-softer: color-mix(in srgb, var(--portfolio-accent) 12%, transparent);
+    --portfolio-accent-border: color-mix(in srgb, var(--portfolio-accent) 42%, transparent);
   }
 }
