@@ -71,7 +71,15 @@ function PortfolioBulletList({
   );
 }
 
-function NeubrutalismPreview({ content, slug }: { content: PortfolioContent; slug: string }) {
+function NeubrutalismPreview({
+  content,
+  slug,
+  narrowLayout,
+}: {
+  content: PortfolioContent;
+  slug: string;
+  narrowLayout?: boolean;
+}) {
   const neu = true;
   const sortedExperience = sortExperienceMostRecentFirst(content.experience ?? []);
   const displayName = content.name?.trim() || slug;
@@ -82,18 +90,29 @@ function NeubrutalismPreview({ content, slug }: { content: PortfolioContent; slu
   return (
     <div className="text-zinc-800 dark:text-zinc-200">
       <header className={cn('border-b border-zinc-300 pb-6 dark:border-zinc-600/80')}>
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+        <div
+          className={cn(
+            'flex flex-col gap-6',
+            !narrowLayout && 'sm:flex-row sm:items-start sm:gap-8',
+          )}
+        >
           <div className="shrink-0">
             {content.profileImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={content.profileImageUrl}
                 alt={displayName}
-                className="h-20 w-20 border-4 border-zinc-900 object-cover shadow-[6px_6px_0_0_rgb(24_24_27)] dark:border-zinc-200 dark:shadow-[6px_6px_0_0_rgb(228_228_231)] sm:h-24 sm:w-24"
+                className={cn(
+                  'border-4 border-zinc-900 object-cover shadow-[6px_6px_0_0_rgb(24_24_27)] dark:border-zinc-200 dark:shadow-[6px_6px_0_0_rgb(228_228_231)]',
+                  narrowLayout ? 'h-16 w-16' : 'h-20 w-20 sm:h-24 sm:w-24',
+                )}
               />
             ) : (
               <div
-                className="flex h-20 w-20 items-center justify-center border-4 border-zinc-900 bg-[var(--portfolio-accent-softer)] text-xl font-bold text-[var(--portfolio-accent)] shadow-[6px_6px_0_0_rgb(24_24_27)] dark:border-zinc-200 dark:shadow-[6px_6px_0_0_rgb(228_228_231)] sm:h-24 sm:w-24 sm:text-2xl"
+                className={cn(
+                  'flex items-center justify-center border-4 border-zinc-900 bg-[var(--portfolio-accent-softer)] font-bold text-[var(--portfolio-accent)] shadow-[6px_6px_0_0_rgb(24_24_27)] dark:border-zinc-200 dark:shadow-[6px_6px_0_0_rgb(228_228_231)]',
+                  narrowLayout ? 'h-16 w-16 text-lg' : 'h-20 w-20 text-xl sm:h-24 sm:w-24 sm:text-2xl',
+                )}
                 aria-hidden
               >
                 {initial}
@@ -104,7 +123,12 @@ function NeubrutalismPreview({ content, slug }: { content: PortfolioContent; slu
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--portfolio-accent)]">
               Portfolio
             </p>
-            <h1 className="text-2xl font-semibold uppercase tracking-[0.06em] text-zinc-950 dark:text-zinc-50 sm:text-3xl">
+            <h1
+              className={cn(
+                'break-words font-semibold uppercase tracking-[0.06em] text-zinc-950 dark:text-zinc-50',
+                narrowLayout ? 'text-xl' : 'text-2xl sm:text-3xl',
+              )}
+            >
               {displayName}
             </h1>
             {content.bio && (
@@ -120,7 +144,7 @@ function NeubrutalismPreview({ content, slug }: { content: PortfolioContent; slu
         {content.skills && content.skills.length > 0 && (
           <section>
             <SectionHeading neu={neu}>Skills</SectionHeading>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {content.skills.map((skill) => (
                 <span key={skill} className={portfolioSkillChipClass(neu)}>
                   {skill}
@@ -268,13 +292,11 @@ function NeubrutalismPreview({ content, slug }: { content: PortfolioContent; slu
 
 export function EditorLivePreview({
   content,
-  portfolioTitle,
   slug,
   theme,
   accentColor,
 }: {
   content: PortfolioContent | null;
-  portfolioTitle: string;
   slug: string;
   theme: string;
   accentColor: string | null;
@@ -294,15 +316,16 @@ export function EditorLivePreview({
     <PortfolioPublicShell accentColor={accentColor} embed>
       <div className="px-3 py-3 sm:px-4 sm:py-4">
         {neu ? (
-          <NeubrutalismPreview content={content} slug={slug} />
+          <NeubrutalismPreview content={content} slug={slug} narrowLayout />
         ) : (
           <>
-            {portfolioTitle && portfolioTitle !== displayName ? (
-              <p className="mb-3 text-[11px] text-zinc-600 dark:text-zinc-500">
-                Dashboard title: <span className="font-semibold text-zinc-900 dark:text-zinc-200">{portfolioTitle}</span>
-              </p>
-            ) : null}
-            <PortfolioClassicMonoView content={content} slug={slug} showBlogLink={false} socialLinks={[]} />
+            <PortfolioClassicMonoView
+              content={content}
+              slug={slug}
+              showBlogLink={false}
+              socialLinks={[]}
+              narrowLayout
+            />
             <p className="mt-4 border-t border-zinc-200 pt-3 text-center text-[10px] uppercase tracking-wider text-zinc-600 dark:border-zinc-700 dark:text-zinc-500">
               <Link
                 href={`/${slug}`}

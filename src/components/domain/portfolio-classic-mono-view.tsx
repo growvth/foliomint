@@ -12,6 +12,7 @@ import {
 
 import { PortfolioPublicFooter } from '@/components/domain/portfolio-public-footer';
 import type { SocialLink } from '@/lib/social-links';
+import { cn } from '@/lib/utils';
 import type { PortfolioContent } from '@/types';
 
 function parsePortfolioDate(value?: string | null): number {
@@ -90,6 +91,11 @@ interface PortfolioClassicMonoViewProps {
   slug: string;
   showBlogLink?: boolean;
   socialLinks?: SocialLink[];
+  /**
+   * Editor / narrow embed: avoid viewport `md:`/`sm:` side-by-side layouts that break when the
+   * preview panel is only ~400–600px wide while the window is large.
+   */
+  narrowLayout?: boolean;
 }
 
 export function PortfolioClassicMonoView({
@@ -97,6 +103,7 @@ export function PortfolioClassicMonoView({
   slug,
   showBlogLink,
   socialLinks = [],
+  narrowLayout = false,
 }: PortfolioClassicMonoViewProps) {
   const sortedExperience = content.experience ? sortExperienceMostRecentFirst(content.experience) : [];
   const bioParagraphs = splitBioParagraphs(content.bio);
@@ -118,7 +125,12 @@ export function PortfolioClassicMonoView({
 
   return (
     <div className="min-h-full text-zinc-800 antialiased dark:text-zinc-200">
-      <div className="mx-auto max-w-2xl px-5 pb-20 pt-8 sm:px-8 lg:max-w-3xl lg:pt-12">
+      <div
+        className={cn(
+          'mx-auto max-w-2xl px-5 pb-20 sm:px-8 lg:max-w-3xl',
+          narrowLayout ? 'pt-4 pb-12' : 'pt-8 lg:pt-12',
+        )}
+      >
         <header className="mb-10 flex flex-wrap items-center justify-between gap-4 border-b border-zinc-200 pb-6 dark:border-zinc-700">
           <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{displayName}</span>
           <nav className="flex flex-wrap items-center justify-end gap-4 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
@@ -144,17 +156,32 @@ export function PortfolioClassicMonoView({
           </nav>
         </header>
 
-        <section className="mb-14 flex flex-col gap-8 border-b border-zinc-200 pb-12 dark:border-zinc-700 md:flex-row-reverse md:items-start md:justify-between">
-          <div className="shrink-0 md:pt-1">
+        <section
+          className={cn(
+            'mb-14 border-b border-zinc-200 pb-12 dark:border-zinc-700',
+            narrowLayout
+              ? 'flex flex-col gap-6'
+              : 'flex flex-col gap-8 md:flex-row-reverse md:items-start md:justify-between',
+          )}
+        >
+          <div className={cn('shrink-0', !narrowLayout && 'md:pt-1')}>
             {content.profileImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={content.profileImageUrl}
                 alt={displayName}
-                className="h-24 w-24 border border-zinc-300 object-cover dark:border-zinc-600 sm:h-28 sm:w-28"
+                className={cn(
+                  'border border-zinc-300 object-cover dark:border-zinc-600',
+                  narrowLayout ? 'h-20 w-20' : 'h-24 w-24 sm:h-28 sm:w-28',
+                )}
               />
             ) : (
-              <div className="flex h-24 w-24 items-center justify-center border border-zinc-300 text-2xl font-bold text-zinc-400 dark:border-zinc-600 dark:text-zinc-500 sm:h-28 sm:w-28">
+              <div
+                className={cn(
+                  'flex items-center justify-center border border-zinc-300 font-bold text-zinc-400 dark:border-zinc-600 dark:text-zinc-500',
+                  narrowLayout ? 'h-20 w-20 text-xl' : 'h-24 w-24 text-2xl sm:h-28 sm:w-28',
+                )}
+              >
                 {initial}
               </div>
             )}
@@ -163,7 +190,12 @@ export function PortfolioClassicMonoView({
             {skillsEyebrow ? (
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-500">{skillsEyebrow}</p>
             ) : null}
-            <h1 className="text-3xl font-bold leading-tight tracking-tight text-zinc-950 dark:text-zinc-50 sm:text-4xl md:text-5xl">
+            <h1
+              className={cn(
+                'break-words font-bold leading-tight tracking-tight text-zinc-950 dark:text-zinc-50',
+                narrowLayout ? 'text-2xl' : 'text-3xl sm:text-4xl md:text-5xl',
+              )}
+            >
               {displayName}
             </h1>
             {content.location ? (
@@ -213,8 +245,20 @@ export function PortfolioClassicMonoView({
                 const dateStr = `${exp.startDate}${exp.endDate ? ` — ${exp.endDate}` : ' — Present'}`;
                 return (
                   <article key={`exp-${idx}`}>
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-                      <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">{exp.role}</h3>
+                    <div
+                      className={cn(
+                        'flex flex-col gap-2',
+                        !narrowLayout && 'sm:flex-row sm:items-baseline sm:justify-between',
+                      )}
+                    >
+                      <h3
+                        className={cn(
+                          'font-bold text-zinc-900 dark:text-zinc-100',
+                          narrowLayout ? 'text-base' : 'text-base sm:text-lg',
+                        )}
+                      >
+                        {exp.role}
+                      </h3>
                       {exp.location ? (
                         <span className="w-fit rounded border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-600 dark:border-zinc-600 dark:bg-zinc-900/60 dark:text-zinc-400">
                           {exp.location}
@@ -299,11 +343,11 @@ export function PortfolioClassicMonoView({
         {content.skills && content.skills.length > 0 && (
           <section id="skills" className="mb-14 scroll-mt-24">
             <SectionTitle>Skills</SectionTitle>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {content.skills.map((skill) => (
                 <span
                   key={skill}
-                  className="rounded px-3 py-1.5 text-sm font-medium bg-[var(--portfolio-accent)] text-zinc-950 dark:text-[#09090b]"
+                  className="rounded px-2 py-0.5 text-xs font-medium leading-none bg-[var(--portfolio-accent)] text-zinc-950 dark:text-[#09090b]"
                 >
                   {skill}
                 </span>
@@ -360,9 +404,11 @@ export function PortfolioClassicMonoView({
           </section>
         )}
 
-        <div className="mt-16 rounded-none border-t border-zinc-200 bg-zinc-100/80 px-4 py-8 dark:border-zinc-800 dark:bg-zinc-900/50">
-          <PortfolioPublicFooter neu={false} label="Published profile" />
-        </div>
+        {!narrowLayout ? (
+          <div className="mt-16 rounded-none border-t border-zinc-200 bg-zinc-100/80 px-4 py-5 sm:px-5 dark:border-zinc-800 dark:bg-zinc-900/50">
+            <PortfolioPublicFooter neu={false} label="Published profile" band />
+          </div>
+        ) : null}
       </div>
     </div>
   );

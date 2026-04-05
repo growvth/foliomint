@@ -9,11 +9,36 @@ import { cn } from '@/lib/utils';
 
 /** Shared control look: high-contrast border, monospace (editor “worksheet” style). */
 export const editorMonoControlClass = cn(
-  'w-full rounded-lg border-2 border-border bg-background px-3 py-2.5 font-mono text-sm leading-relaxed',
+  'min-w-0 w-full rounded-lg border-2 border-border bg-background px-3.5 py-3 font-mono text-sm leading-relaxed',
   'text-foreground placeholder:text-muted-foreground/70',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
   'dark:border-white/[0.14] dark:bg-[hsl(200_14%_10%)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)]',
 );
+
+/** Vertical stack inside repeat cards (roles, schools, projects, …). */
+export const editorRepeatBodyClass = 'flex flex-col gap-5 sm:gap-6';
+
+/** Row container: use with `EditorFormCell` around each field (avoids stray whitespace flex items from JSX). */
+export const editorFormRow2 = 'flex flex-col gap-5 sm:flex-row sm:items-stretch sm:gap-x-5';
+
+export const editorFormRow2Md = 'flex flex-col gap-5 md:flex-row md:items-stretch md:gap-x-5';
+
+export const editorFormRow3 = 'flex flex-col gap-5 sm:flex-row sm:items-stretch sm:gap-x-4';
+
+/** Equal-width column: `flex-1 basis-0 min-w-0` for stable halves/thirds next to siblings. */
+export function EditorFormCell({ bp = 'sm', children }: { bp?: 'sm' | 'md'; children: ReactNode }) {
+  return (
+    <div
+      className={cn(
+        'min-w-0',
+        bp === 'sm' && 'sm:flex-1 sm:basis-0',
+        bp === 'md' && 'md:flex-1 md:basis-0',
+      )}
+    >
+      {children}
+    </div>
+  );
+}
 
 export function EditorFormPanel({
   title,
@@ -27,15 +52,15 @@ export function EditorFormPanel({
   return (
     <section
       className={cn(
-        'rounded-xl border-2 border-border bg-card/40 p-5 shadow-sm sm:p-6',
+        'rounded-xl border-2 border-border bg-card/40 p-6 shadow-sm sm:p-8',
         'dark:border-white/[0.12] dark:bg-[hsl(200_14%_11%)] dark:shadow-none',
       )}
     >
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-border/70 pb-4 dark:border-white/10">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-border/70 pb-5 dark:border-white/10">
         <h2 className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-foreground">{title}</h2>
         {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
       </div>
-      <div className="space-y-5">{children}</div>
+      <div className="space-y-6">{children}</div>
     </section>
   );
 }
@@ -44,20 +69,44 @@ export function EditorField({
   id,
   label,
   hint,
+  uniformLabelStack,
   children,
 }: {
   id: string;
   label: string;
   hint?: string;
+  /** When fields sit side-by-side, reserve a fixed hint band so inputs align even if only some columns have hint text. */
+  uniformLabelStack?: boolean;
   children: ReactNode;
 }) {
+  const hintParagraph = hint ? (
+    <p className="font-mono text-[11px] leading-relaxed text-muted-foreground">{hint}</p>
+  ) : null;
+
+  if (uniformLabelStack) {
+    return (
+      <div className="min-w-0 space-y-1.5">
+        <div className="space-y-0.5">
+          <label htmlFor={id} className="block font-mono text-xs font-bold uppercase tracking-wide text-foreground">
+            {label}
+          </label>
+          {/* ~2 lines at 11px; tight enough to avoid empty “wells” when a sibling has no hint */}
+          <div className="min-h-[2.125rem]">{hintParagraph}</div>
+        </div>
+        <div>{children}</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="block font-mono text-xs font-bold uppercase tracking-wide text-foreground">
-        {label}
-      </label>
-      {hint ? <p className="font-mono text-[11px] leading-snug text-muted-foreground">{hint}</p> : null}
-      {children}
+    <div className="min-w-0 space-y-2">
+      <div className="space-y-0.5">
+        <label htmlFor={id} className="block font-mono text-xs font-bold uppercase tracking-wide text-foreground">
+          {label}
+        </label>
+        {hintParagraph}
+      </div>
+      <div>{children}</div>
     </div>
   );
 }
@@ -85,11 +134,11 @@ export function EditorSkillsField({
   const remove = (index: number) => onChange(skills.filter((_, idx) => idx !== index));
 
   return (
-    <div className="space-y-3">
-      <p className="font-mono text-[11px] text-muted-foreground">
+    <div className="space-y-4">
+      <p className="font-mono text-[11px] leading-relaxed text-muted-foreground">
         Add skills one at a time. Each appears as a removable tag—no guessing after you fill the form.
       </p>
-      <div className="flex min-h-[2.5rem] flex-wrap gap-2 rounded-lg border-2 border-dashed border-border/80 bg-muted/20 p-2 dark:border-white/10 dark:bg-black/20">
+      <div className="flex min-h-[2.75rem] flex-wrap gap-2.5 rounded-lg border-2 border-dashed border-border/80 bg-muted/20 p-3 dark:border-white/10 dark:bg-black/20">
         {skills.length === 0 ? (
           <span className="self-center font-mono text-xs text-muted-foreground">No skills yet.</span>
         ) : (
@@ -111,7 +160,7 @@ export function EditorSkillsField({
           ))
         )}
       </div>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Input
           id="editor-skill-draft"
           value={draft}
@@ -123,9 +172,9 @@ export function EditorSkillsField({
             }
           }}
           placeholder="Type a skill, press Enter"
-          className={cn(editorMonoControlClass, 'h-10 sm:max-w-md')}
+          className={cn(editorMonoControlClass, 'h-11 sm:max-w-md')}
         />
-        <Button type="button" variant="outline" size="sm" className="h-10 font-mono text-xs uppercase" onClick={add}>
+        <Button type="button" variant="outline" size="sm" className="h-11 font-mono text-xs uppercase" onClick={add}>
           Add skill
         </Button>
       </div>

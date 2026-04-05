@@ -91,13 +91,13 @@ export const PORTFOLIO_CARD_PAD = 'p-6 sm:p-7';
 export function portfolioSkillChipClass(neu: boolean): string {
   return neu
     ? cn(
-        'rounded-none border-2 border-zinc-900 bg-white px-3 py-1.5 text-sm font-bold text-zinc-900',
+        'rounded-none border-2 border-zinc-900 bg-white px-2 py-0.5 text-xs font-bold leading-none text-zinc-900',
         'shadow-[3px_3px_0_0_rgb(24_24_27)]',
         'dark:border-zinc-200 dark:bg-zinc-950 dark:text-zinc-100 dark:shadow-[3px_3px_0_0_rgb(228_228_231)]',
       )
     : cn(
-        'rounded-full border border-[var(--portfolio-accent-border)] bg-[var(--portfolio-accent-softer)] px-3.5 py-1.5',
-        'text-sm font-medium text-zinc-800 transition-colors hover:border-[var(--portfolio-accent)]/55 hover:bg-[var(--portfolio-accent-soft)]',
+        'rounded-full border border-[var(--portfolio-accent-border)] bg-[var(--portfolio-accent-softer)] px-2.5 py-0.5',
+        'text-xs font-medium leading-none text-zinc-800 transition-colors hover:border-[var(--portfolio-accent)]/55 hover:bg-[var(--portfolio-accent-soft)]',
         'dark:text-zinc-200 dark:hover:border-[var(--portfolio-accent)]/55',
       );
 }

@@ -143,7 +143,7 @@
   }
 
   .dark .editor-workspace .editor-nested-card {
-    @apply border-white/[0.1] bg-[hsl(200_13%_10%)] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)];
+    @apply border-white/[0.11] bg-[hsl(200_13%_10.5%)] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.035)];
   }
 
   .editor-workspace input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='file']),

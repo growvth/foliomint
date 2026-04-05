@@ -164,7 +164,7 @@ export function PortfolioContentView({
           {content.skills && content.skills.length > 0 && (
             <section>
               <SectionHeading neu={neu}>Skills</SectionHeading>
-              <div className="flex flex-wrap gap-2.5">
+              <div className="flex flex-wrap gap-1.5">
                 {content.skills.map((skill) => (
                   <span key={skill} className={portfolioSkillChipClass(neu)}>
                     {skill}
