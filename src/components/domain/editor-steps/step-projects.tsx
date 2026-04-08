@@ -85,7 +85,7 @@ export function EditorStepProjects(ctx: EditorStepContext) {
                         uniformLabelStack
                         id={`editor-proj-${idx}-url`}
                         label="Link"
-                        hint="Repo, demo, or case study URL."
+                        hint="Repo, demo, or case study URL. You can paste `github.com/org/repo` — https is added automatically."
                       >
                         <Input
                           id={`editor-proj-${idx}-url`}

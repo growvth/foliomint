@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Navbar } from '@/components/domain/navbar';
 import { and, eq, sql } from 'drizzle-orm';
 
+import { portfolioSiteBasePath } from '@/lib/public-handle';
+
 type DashboardPageProps = {
   searchParams?: Record<string, string | string[] | undefined>;
 };
@@ -38,6 +40,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         id: portfolios.id,
         title: portfolios.title,
         slug: portfolios.slug,
+        publicHandle: portfolios.publicHandle,
         theme: portfolios.theme,
         isPublished: portfolios.isPublished,
         createdAt: portfolios.createdAt,
@@ -193,7 +196,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                       </Button>
                       {portfolio.isPublished && (
                         <Button asChild variant="ghost" size="sm">
-                          <Link href={`/${portfolio.slug}`} target="_blank">
+                          <Link
+                            href={portfolioSiteBasePath({
+                              publicHandle: portfolio.publicHandle ?? null,
+                              slug: portfolio.slug,
+                            })}
+                            target="_blank"
+                          >
                             <Globe className="mr-1 h-3 w-3" />
                             View
                           </Link>

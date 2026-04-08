@@ -7,6 +7,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { portfolios, viewLogs } from '@/lib/db/schema';
 import { Navbar } from '@/components/domain/navbar';
+import { portfolioSiteBasePath } from '@/lib/public-handle';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -42,6 +43,7 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
       id: portfolios.id,
       title: portfolios.title,
       slug: portfolios.slug,
+      publicHandle: portfolios.publicHandle,
       isPublished: portfolios.isPublished,
     })
     .from(portfolios)
@@ -265,7 +267,10 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
                           <span>{views} views</span>
                           {p.isPublished && (
                             <Link
-                              href={`/${p.slug}`}
+                              href={portfolioSiteBasePath({
+                                publicHandle: p.publicHandle ?? null,
+                                slug: p.slug,
+                              })}
                               target="_blank"
                               className="text-primary hover:underline"
                             >

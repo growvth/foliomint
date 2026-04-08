@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { portfolios } from '@/lib/db/schema';
 import { sendPortfolioPublishedEmail } from '@/lib/email';
 import { userHasProAccess } from '@/lib/pro-access';
+import { portfolioSiteBasePath, validatePublicHandleForSave } from '@/lib/public-handle';
 import { normalizePublicDomain } from '@/lib/slug';
 import { sanitizePortfolioAccentForStorage } from '@/lib/portfolio-accent';
 import type { PortfolioContent } from '@/types';
@@ -35,6 +36,7 @@ export async function GET(_req: Request, { params }: RouteContext) {
   return NextResponse.json({
     id: portfolio.id,
     slug: portfolio.slug,
+    publicHandle: portfolio.publicHandle ?? null,
     title: portfolio.title,
     theme: portfolio.theme,
     accentColor: portfolio.accentColor,
@@ -69,6 +71,8 @@ export async function PATCH(req: Request, { params }: RouteContext) {
     return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 });
   }
 
+  let resolvedPublicHandle = existing.publicHandle ?? null;
+
   const body = (await req.json()) as Partial<{
     title: string;
     theme: string;
@@ -76,6 +80,8 @@ export async function PATCH(req: Request, { params }: RouteContext) {
     isPublished: boolean;
     content: PortfolioContent;
     customDomain: string | null;
+    /** Clean public username for `/u/{handle}`; omit or null to clear. */
+    publicHandle: string | null;
   }>;
 
   if (body.theme !== undefined && body.theme === 'neubrutalism' && !(await userHasProAccess(userId))) {
@@ -91,6 +97,7 @@ export async function PATCH(req: Request, { params }: RouteContext) {
     customDomain?: string | null;
     customDomainVerified?: boolean;
     domainVerificationToken?: string | null;
+    publicHandle?: string | null;
     updatedAt: Date;
   } = { updatedAt: new Date() };
 
@@ -140,6 +147,26 @@ export async function PATCH(req: Request, { params }: RouteContext) {
     }
   }
 
+  if (body.publicHandle !== undefined) {
+    const v = validatePublicHandleForSave(body.publicHandle);
+    if (!v.ok) {
+      return NextResponse.json({ error: v.error }, { status: 400 });
+    }
+    const nextHandle = v.handle === '' ? null : v.handle;
+    if (nextHandle) {
+      const taken = await db
+        .select({ id: portfolios.id })
+        .from(portfolios)
+        .where(eq(portfolios.publicHandle, nextHandle))
+        .get();
+      if (taken && taken.id !== existing.id) {
+        return NextResponse.json({ error: 'That username is already taken.' }, { status: 409 });
+      }
+    }
+    set.publicHandle = nextHandle;
+    resolvedPublicHandle = nextHandle;
+  }
+
   await db.update(portfolios).set(set).where(eq(portfolios.id, params.id));
 
   const publishEmail = appUser?.email;
@@ -149,7 +176,11 @@ export async function PATCH(req: Request, { params }: RouteContext) {
     publishEmail &&
     typeof publishEmail === 'string'
   ) {
-    await sendPortfolioPublishedEmail(publishEmail, existing.title, existing.slug);
+    await sendPortfolioPublishedEmail(
+      publishEmail,
+      existing.title,
+      portfolioSiteBasePath({ publicHandle: resolvedPublicHandle, slug: existing.slug }),
+    );
   }
 
   return NextResponse.json({ ok: true });

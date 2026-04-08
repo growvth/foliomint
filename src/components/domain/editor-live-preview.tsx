@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 import { PortfolioClassicMonoView } from '@/components/domain/portfolio-classic-mono-view';
 import { PortfolioPublicShell } from '@/components/domain/portfolio-public-shell';
-import { cn } from '@/lib/utils';
+import { cn, normalizeOutboundHref } from '@/lib/utils';
 import {
   PORTFOLIO_CARD_PAD,
   portfolioBulletDotClass,
@@ -15,6 +15,7 @@ import {
   portfolioSectionTitleRowClass,
   portfolioSkillChipClass,
 } from '@/lib/portfolio-public-ui';
+import { portfolioSiteBasePath } from '@/lib/public-handle';
 import type { PortfolioContent } from '@/types';
 
 function parsePortfolioDate(value?: string | null): number {
@@ -74,10 +75,12 @@ function PortfolioBulletList({
 function NeubrutalismPreview({
   content,
   slug,
+  siteBasePath,
   narrowLayout,
 }: {
   content: PortfolioContent;
   slug: string;
+  siteBasePath: string;
   narrowLayout?: boolean;
 }) {
   const neu = true;
@@ -216,7 +219,12 @@ function NeubrutalismPreview({
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <h3 className="text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-100">{project.name}</h3>
                     {project.url && (
-                      <a href={project.url} className={portfolioInlineLinkClass(neu)} target="_blank" rel="noreferrer">
+                      <a
+                        href={normalizeOutboundHref(project.url)}
+                        className={portfolioInlineLinkClass(neu)}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
                         Open →
                       </a>
                     )}
@@ -280,7 +288,7 @@ function NeubrutalismPreview({
 
       <p className="mt-8 border-t border-zinc-200 pt-4 text-center text-[10px] uppercase tracking-[0.14em] text-zinc-600 dark:border-zinc-700 dark:text-zinc-500">
         <Link
-          href={`/${slug}`}
+          href={siteBasePath}
           className="font-bold text-[var(--portfolio-accent)] underline decoration-2 underline-offset-4 hover:opacity-90"
         >
           Open published site
@@ -293,11 +301,13 @@ function NeubrutalismPreview({
 export function EditorLivePreview({
   content,
   slug,
+  publicHandle,
   theme,
   accentColor,
 }: {
   content: PortfolioContent | null;
   slug: string;
+  publicHandle?: string | null;
   theme: string;
   accentColor: string | null;
 }) {
@@ -310,25 +320,26 @@ export function EditorLivePreview({
   }
 
   const neu = theme === 'neubrutalism';
-  const displayName = content.name?.trim() || slug;
+  const siteBasePath = portfolioSiteBasePath({ publicHandle: publicHandle ?? null, slug });
 
   return (
     <PortfolioPublicShell accentColor={accentColor} embed>
       <div className="px-3 py-3 sm:px-4 sm:py-4">
         {neu ? (
-          <NeubrutalismPreview content={content} slug={slug} narrowLayout />
+          <NeubrutalismPreview content={content} slug={slug} siteBasePath={siteBasePath} narrowLayout />
         ) : (
           <>
             <PortfolioClassicMonoView
               content={content}
               slug={slug}
+              siteBasePath={siteBasePath}
               showBlogLink={false}
               socialLinks={[]}
               narrowLayout
             />
             <p className="mt-4 border-t border-zinc-200 pt-3 text-center text-[10px] uppercase tracking-wider text-zinc-600 dark:border-zinc-700 dark:text-zinc-500">
               <Link
-                href={`/${slug}`}
+                href={siteBasePath}
                 className="font-semibold text-[var(--portfolio-accent)] underline-offset-4 hover:underline"
               >
                 Open published site

@@ -20,13 +20,16 @@ import {
   portfolioShellClass,
   portfolioSkillChipClass,
 } from '@/lib/portfolio-public-ui';
-import { cn } from '@/lib/utils';
+import { cn, normalizeOutboundHref } from '@/lib/utils';
 import type { SocialLink } from '@/lib/social-links';
 import type { PortfolioContent } from '@/types';
 
 interface PortfolioContentViewProps {
   content: PortfolioContent;
+  /** Fallback label for initials / header when display name is empty (legacy slug or handle). */
   slug: string;
+  /** Public URL prefix without trailing slash, e.g. `/u/alice` or `/name-abc123`. */
+  siteBasePath: string;
   theme: string;
   showBlogLink?: boolean;
   socialLinks?: SocialLink[];
@@ -94,6 +97,7 @@ function BulletList({ items, neu, dense }: { items: string[]; neu: boolean; dens
 export function PortfolioContentView({
   content,
   slug,
+  siteBasePath,
   theme,
   showBlogLink,
   socialLinks = [],
@@ -109,6 +113,7 @@ export function PortfolioContentView({
       <PortfolioClassicMonoView
         content={content}
         slug={slug}
+        siteBasePath={siteBasePath}
         showBlogLink={showBlogLink}
         socialLinks={socialLinks}
       />
@@ -120,7 +125,7 @@ export function PortfolioContentView({
       <div className={cn('relative', portfolioContentContainerClass())}>
         {showBlogLink && (
           <div className="mb-10 flex justify-end sm:mb-12">
-            <Link href={`/${slug}/blog`} className={portfolioNavPillClass(neu)}>
+            <Link href={`${siteBasePath}/blog`} className={portfolioNavPillClass(neu)}>
               Blog
             </Link>
           </div>
@@ -243,7 +248,7 @@ export function PortfolioContentView({
                       <h3 className="text-lg font-semibold leading-snug text-zinc-900 dark:text-zinc-100">{project.name}</h3>
                       {project.url && (
                         <a
-                          href={project.url}
+                          href={normalizeOutboundHref(project.url)}
                           className={portfolioInlineLinkClass(neu)}
                           target="_blank"
                           rel="noreferrer"
@@ -320,7 +325,7 @@ export function PortfolioContentView({
                 {socialLinks.map((link, i) => (
                   <a
                     key={`${link.label}-${link.href}-${i}`}
-                    href={link.href}
+                    href={normalizeOutboundHref(link.href)}
                     target="_blank"
                     rel="noreferrer"
                     className={portfolioOutboundChipClass(neu)}

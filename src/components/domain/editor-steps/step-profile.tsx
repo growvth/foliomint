@@ -55,6 +55,32 @@ export function EditorStepProfile(ctx: EditorStepContext) {
             className={monoInput()}
           />
         </EditorField>
+        <EditorField
+          id="editor-public-handle"
+          label="Public username"
+          hint="Clean link for sharing: /u/your-name on this site (e.g. foliomint.site/u/alice). Lowercase letters, numbers, and single hyphens; 3–32 characters. Leave empty to use only the legacy auto-generated link in the toolbar."
+        >
+          <Input
+            id="editor-public-handle"
+            className={monoInput('lowercase')}
+            value={state.publicHandle ?? ''}
+            placeholder="e.g. alice-chen"
+            spellCheck={false}
+            autoComplete="off"
+            onChange={(e) =>
+              setState((prev) =>
+                prev ? { ...prev, publicHandle: e.target.value || null } : prev,
+              )
+            }
+            onBlur={(e) => {
+              const t = e.target.value.trim().toLowerCase();
+              const next = t === '' ? null : t;
+              setState((prev) => (prev ? { ...prev, publicHandle: next } : prev));
+              void handleSave({ publicHandle: next });
+            }}
+            disabled={saving}
+          />
+        </EditorField>
         {content ? (
           <>
             <EditorField id="editor-full-name" label="Display name" hint="Your name on the public portfolio.">

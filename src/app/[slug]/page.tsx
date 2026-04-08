@@ -1,15 +1,9 @@
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
-import { and, eq, sql } from 'drizzle-orm';
 
-import { PortfolioContentView } from '@/components/domain/portfolio-content-view';
-import { db } from '@/lib/db';
-import { blogPosts, integrations } from '@/lib/db/schema';
+import { PortfolioPublicHome } from '@/components/domain/portfolio-public-home';
 import { getPublishedPortfolioBySlug } from '@/lib/portfolio-public';
-import { integrationToSocialLink } from '@/lib/social-links';
-import { logPortfolioView, parseViewHeaders } from '@/lib/view-log';
-import type { PortfolioContent } from '@/types';
+import { portfolioSiteBasePath } from '@/lib/public-handle';
 
 interface PortfolioPageProps {
   params: { slug: string };
@@ -40,38 +34,17 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
     return notFound();
   }
 
-  const headerList = headers();
-  await logPortfolioView(
-    portfolio.id,
-    parseViewHeaders((name) => headerList.get(name)),
-  );
+  if (portfolio.publicHandle) {
+    permanentRedirect(`/u/${portfolio.publicHandle}`);
+  }
 
-  const content = portfolio.content as unknown as PortfolioContent;
-
-  const integrationRows = await db
-    .select()
-    .from(integrations)
-    .where(eq(integrations.userId, portfolio.userId));
-
-  const socialLinks = integrationRows
-    .map((r) => integrationToSocialLink(r.platform, r.username, r.data as Record<string, unknown> | null))
-    .filter((x): x is NonNullable<typeof x> => x !== null);
-
-  const blogCountRow = await db
-    .select({ c: sql<number>`count(*)` })
-    .from(blogPosts)
-    .where(and(eq(blogPosts.portfolioId, portfolio.id), eq(blogPosts.isPublished, true)))
-    .get();
-
-  const showBlog = (blogCountRow?.c ?? 0) > 0;
+  const siteBasePath = portfolioSiteBasePath(portfolio);
 
   return (
-    <PortfolioContentView
-      content={content}
-      slug={slug}
-      theme={portfolio.theme}
-      showBlogLink={showBlog}
-      socialLinks={socialLinks}
+    <PortfolioPublicHome
+      portfolio={portfolio}
+      siteBasePath={siteBasePath}
+      displaySlug={slug}
     />
   );
 }

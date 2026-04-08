@@ -13,6 +13,7 @@ import { EditorStepPanels } from '@/components/domain/editor-step-panels';
 import { EditorWizardWorkspace } from '@/components/domain/editor-wizard-workspace';
 import { editorMonoControlClass } from '@/components/domain/editor-form-ui';
 import { Navbar } from '@/components/domain/navbar';
+import { portfolioSiteBasePath } from '@/lib/public-handle';
 import { cn } from '@/lib/utils';
 import type { EditorPageState } from '@/types/editor-page';
 import type { PortfolioContent } from '@/types';
@@ -47,6 +48,7 @@ export default function EditorPage() {
         setState({
           id: data.id,
           slug: data.slug,
+          publicHandle: data.publicHandle ?? null,
           title: data.title,
           theme: data.theme,
           accentColor: data.accentColor ?? null,
@@ -81,6 +83,7 @@ export default function EditorPage() {
           accentColor: next.accentColor,
           isPublished: next.isPublished,
           content: next.content,
+          publicHandle: next.publicHandle,
         }),
       });
       if (!res.ok) throw new Error('Failed to save portfolio');
@@ -146,6 +149,11 @@ export default function EditorPage() {
     editorRepeatItemClass,
   };
 
+  const liveSitePath = portfolioSiteBasePath({
+    publicHandle: state.publicHandle,
+    slug: state.slug,
+  });
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -156,7 +164,12 @@ export default function EditorPage() {
           <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <span className="text-sm text-muted-foreground">Editing</span>
-              <code className="truncate rounded bg-muted px-2 py-0.5 text-xs">{state.slug}</code>
+              <code
+                className="max-w-[min(100%,14rem)] truncate rounded bg-muted px-2 py-0.5 text-xs sm:max-w-xs"
+                title={state.publicHandle ? 'Public URL path' : 'Legacy URL (set a public username in Profile to shorten)'}
+              >
+                {liveSitePath}
+              </code>
               <span
                 className={
                   tier === 'pro'
@@ -221,7 +234,7 @@ export default function EditorPage() {
               </details>
               {state.isPublished && (
                 <Button asChild variant="ghost" size="sm">
-                  <Link href={`/${state.slug}`} target="_blank">
+                  <Link href={liveSitePath} target="_blank">
                     <Eye className="mr-2 h-4 w-4" />
                     Preview
                   </Link>
@@ -286,6 +299,7 @@ export default function EditorPage() {
                     <EditorLivePreview
                       content={content}
                       slug={state.slug}
+                      publicHandle={state.publicHandle}
                       theme={state.theme}
                       accentColor={state.accentColor}
                     />

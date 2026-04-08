@@ -12,7 +12,7 @@ import {
 
 import { PortfolioPublicFooter } from '@/components/domain/portfolio-public-footer';
 import type { SocialLink } from '@/lib/social-links';
-import { cn } from '@/lib/utils';
+import { cn, normalizeOutboundHref } from '@/lib/utils';
 import type { PortfolioContent } from '@/types';
 
 function parsePortfolioDate(value?: string | null): number {
@@ -51,6 +51,22 @@ function normalizeHref(href: string): string {
   return href.trim().replace(/\/$/, '').toLowerCase();
 }
 
+/** Parse hostname for icon matching; avoids substring bugs (e.g. `fox.com` matching `x.com`). */
+function hostnameForIconMatch(href: string): string | null {
+  try {
+    const raw = href.trim();
+    if (!raw) return null;
+    const withScheme = /^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw}`;
+    return new URL(withScheme).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function isTwitterHostname(host: string): boolean {
+  return host === 'x.com' || host === 'twitter.com' || host.endsWith('.twitter.com');
+}
+
 function buildProfileLinks(content: PortfolioContent, socialLinks: SocialLink[]): SocialLink[] {
   const links: SocialLink[] = [];
   if (content.email) links.push({ label: 'Email', href: `mailto:${content.email}` });
@@ -60,7 +76,7 @@ function buildProfileLinks(content: PortfolioContent, socialLinks: SocialLink[])
   links.push(...socialLinks);
   const seen = new Set<string>();
   return links.filter((link) => {
-    const key = `${link.label.toLowerCase()}::${normalizeHref(link.href)}`;
+    const key = `${link.label.toLowerCase()}::${normalizeHref(normalizeOutboundHref(link.href))}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -70,10 +86,14 @@ function buildProfileLinks(content: PortfolioContent, socialLinks: SocialLink[])
 function iconForProfileLink(link: SocialLink): LucideIcon {
   const label = link.label.toLowerCase();
   const href = link.href.toLowerCase();
-  if (label.includes('github') || href.includes('github.com')) return Github;
-  if (label.includes('linkedin') || href.includes('linkedin.com')) return Linkedin;
-  if (label.includes('twitter') || href.includes('twitter.com') || href.includes('x.com')) return Twitter;
-  if (label.includes('youtube') || href.includes('youtube.com')) return Youtube;
+  const host = hostnameForIconMatch(link.href);
+
+  if (label.includes('github') || (host && (host === 'github.com' || host.endsWith('.github.com')))) return Github;
+  if (label.includes('linkedin') || (host && (host === 'linkedin.com' || host.endsWith('.linkedin.com'))))
+    return Linkedin;
+  if (label.includes('twitter') || label === 'x' || (host && isTwitterHostname(host))) return Twitter;
+  if (label.includes('youtube') || (host && (host === 'youtube.com' || host === 'youtu.be' || host.endsWith('.youtube.com'))))
+    return Youtube;
   if (label.includes('email') || href.startsWith('mailto:')) return Mail;
   return Globe;
 }
@@ -89,6 +109,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 interface PortfolioClassicMonoViewProps {
   content: PortfolioContent;
   slug: string;
+  siteBasePath: string;
   showBlogLink?: boolean;
   socialLinks?: SocialLink[];
   /**
@@ -101,6 +122,7 @@ interface PortfolioClassicMonoViewProps {
 export function PortfolioClassicMonoView({
   content,
   slug,
+  siteBasePath,
   showBlogLink,
   socialLinks = [],
   narrowLayout = false,
@@ -116,7 +138,7 @@ export function PortfolioClassicMonoView({
     content.education?.length ? { label: 'Education', href: '#education' } : null,
     content.projects?.length ? { label: 'Projects', href: '#projects' } : null,
     content.skills?.length ? { label: 'Skills', href: '#skills' } : null,
-    showBlogLink ? { label: 'Blog', href: `/${slug}/blog` } : null,
+    showBlogLink ? { label: 'Blog', href: `${siteBasePath}/blog` } : null,
   ].filter((item): item is { label: string; href: string } => item !== null);
 
   const skillsEyebrow = content.skills?.length
@@ -211,7 +233,7 @@ export function PortfolioClassicMonoView({
                   return (
                     <a
                       key={`${link.label}-${idx}`}
-                      href={link.href}
+                      href={normalizeOutboundHref(link.href)}
                       target={link.href.startsWith('mailto:') ? undefined : '_blank'}
                       rel={link.href.startsWith('mailto:') ? undefined : 'noreferrer'}
                       className="inline-flex h-9 w-9 items-center justify-center border border-zinc-300 text-zinc-500 transition-colors hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)] dark:border-zinc-600"
@@ -315,7 +337,7 @@ export function PortfolioClassicMonoView({
                     <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">{project.name}</h3>
                     {project.url ? (
                       <a
-                        href={project.url}
+                        href={normalizeOutboundHref(project.url)}
                         target="_blank"
                         rel="noreferrer"
                         className="text-xs font-bold text-[var(--portfolio-accent)] underline underline-offset-4 hover:opacity-90"

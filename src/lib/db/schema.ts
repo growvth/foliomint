@@ -52,13 +52,17 @@ export const verificationTokens = sqliteTable('verification_tokens', {
   expires: integer('expires', { mode: 'timestamp' }).notNull(),
 });
 
-export const portfolios = sqliteTable('portfolios', {
-  id: text('id').primaryKey(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  slug: text('slug').unique().notNull(),
-  title: text('title').notNull(),
+export const portfolios = sqliteTable(
+  'portfolios',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    slug: text('slug').unique().notNull(),
+    /** Optional clean public path segment: site is /u/{publicHandle} when set (unique among non-null rows). */
+    publicHandle: text('public_handle'),
+    title: text('title').notNull(),
   content: text('content', { mode: 'json' }).$type<Record<string, unknown>>().notNull(),
   theme: text('theme').default('classic').notNull(),
   /** Hex accent for public portfolio (links, chips, markers). Default applied in UI when null. */
@@ -76,7 +80,11 @@ export const portfolios = sqliteTable('portfolios', {
   updatedAt: integer('updated_at', { mode: 'timestamp' })
     .notNull()
     .$defaultFn(() => new Date()),
-});
+  },
+  (t) => ({
+    publicHandleUnq: uniqueIndex('portfolios_public_handle_unq').on(t.publicHandle),
+  }),
+);
 
 export const integrations = sqliteTable(
   'integrations',

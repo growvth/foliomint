@@ -4,6 +4,8 @@ import type { PortfolioContent } from '@/types';
 export interface EditorPageState {
   id: string;
   slug: string;
+  /** Optional clean URL segment; live site is `/u/{publicHandle}` when set. */
+  publicHandle: string | null;
   title: string;
   theme: string;
   accentColor: string | null;

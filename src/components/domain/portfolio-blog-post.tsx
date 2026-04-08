@@ -1,0 +1,74 @@
+import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+import { PortfolioPublicFooter } from '@/components/domain/portfolio-public-footer';
+import { blogPosts } from '@/lib/db/schema';
+import type { PublicPortfolioRow } from '@/lib/portfolio-public';
+import {
+  portfolioContentContainerClass,
+  portfolioEyebrowClass,
+  portfolioHeaderRuleClass,
+  portfolioNavPillClass,
+  portfolioReadingColumnClass,
+} from '@/lib/portfolio-public-ui';
+import { cn } from '@/lib/utils';
+
+type BlogPostRow = typeof blogPosts.$inferSelect;
+
+export function PortfolioBlogPost({
+  portfolio,
+  post,
+  siteBasePath,
+}: {
+  portfolio: PublicPortfolioRow;
+  post: BlogPostRow;
+  siteBasePath: string;
+}) {
+  const neu = portfolio.theme === 'neubrutalism';
+
+  return (
+    <article className={cn('portfolio-surface', portfolioContentContainerClass())}>
+      <div className={portfolioReadingColumnClass()}>
+        <Link href={`${siteBasePath}/blog`} className={portfolioNavPillClass(neu)}>
+          ← All posts
+        </Link>
+
+        <header className={cn('mt-10', portfolioHeaderRuleClass(neu))}>
+          <p className={portfolioEyebrowClass(neu)}>Post</p>
+          <h1
+            className={cn(
+              'mt-3 text-[clamp(1.75rem,3vw+1rem,2.75rem)] font-semibold leading-tight tracking-tight text-zinc-950 dark:text-zinc-50',
+              neu && 'uppercase',
+            )}
+          >
+            {post.title}
+          </h1>
+          {post.publishedAt && (
+            <p className="mt-4 text-sm font-medium tabular-nums text-zinc-600 dark:text-zinc-500">
+              {new Date(post.publishedAt).toLocaleDateString(undefined, {
+                dateStyle: 'long',
+              })}
+            </p>
+          )}
+        </header>
+
+        <div
+          className={cn(
+            'prose prose-neutral prose-lg mt-12 max-w-none dark:prose-invert',
+            'prose-headings:tracking-tight prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100',
+            'prose-p:text-zinc-700 dark:prose-p:text-zinc-300',
+            'prose-li:text-zinc-700 dark:prose-li:text-zinc-300',
+            'prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100',
+            'prose-a:font-semibold prose-a:text-[var(--portfolio-accent)] prose-a:no-underline hover:prose-a:underline',
+            neu && 'prose-headings:uppercase',
+          )}
+        >
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
+        </div>
+
+        <PortfolioPublicFooter neu={neu} label="Blog" />
+      </div>
+    </article>
+  );
+}
