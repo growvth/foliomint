@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpen, ChevronDown, Globe2, Save, Eye, Globe, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+
+import { toastAfterPortfolioSave } from '@/lib/editor-save-toast';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -70,6 +73,7 @@ export default function EditorPage() {
 
   const handleSave = async (updates?: Partial<EditorPageState>) => {
     if (!state) return;
+    const prevPublished = state.isPublished;
     setSaving(true);
     try {
       const next = { ...state, ...updates };
@@ -89,8 +93,12 @@ export default function EditorPage() {
       if (!res.ok) throw new Error('Failed to save portfolio');
       setState(next);
       setError(null);
+
+      toastAfterPortfolioSave(updates, next, prevPublished);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to save portfolio');
+      const msg = e instanceof Error ? e.message : 'Failed to save portfolio';
+      setError(msg);
+      toast.error('Could not save', { description: msg });
     } finally {
       setSaving(false);
     }

@@ -12,16 +12,26 @@ interface PricingProCtaProps {
   className?: string;
   variant?: 'default' | 'outline';
   size?: 'default' | 'sm' | 'lg' | 'icon';
+  /** Button label (default matches marketing pricing page). */
+  label?: string;
+  /** Path users return to after signing in to complete checkout. */
+  signInCallbackUrl?: string;
 }
 
-export function PricingProCta({ className, variant = 'default', size = 'lg' }: PricingProCtaProps) {
+export function PricingProCta({
+  className,
+  variant = 'default',
+  size = 'lg',
+  label = 'Start Pro',
+  signInCallbackUrl = '/pricing',
+}: PricingProCtaProps) {
   const router = useRouter();
   const { status } = useSession();
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
     if (status !== 'authenticated') {
-      router.push('/sign-in?callbackUrl=/pricing');
+      router.push(`/sign-in?callbackUrl=${encodeURIComponent(signInCallbackUrl)}`);
       return;
     }
 
@@ -64,7 +74,7 @@ export function PricingProCta({ className, variant = 'default', size = 'lg' }: P
           Redirecting…
         </>
       ) : (
-        'Start Pro'
+        label
       )}
     </Button>
   );

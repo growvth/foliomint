@@ -16,8 +16,10 @@ export async function POST() {
   if (!apiKey || !storeId || !variantId) {
     return NextResponse.json(
       {
-        error: 'Lemon Squeezy checkout is not configured (API key, store ID, variant ID)',
-        hint: 'For local development without Lemon Squeezy, set BYPASS_PAYMENT_GATING=true in .env.local (see TODO.md).',
+        error: 'Checkout is not available right now. Please try again later.',
+        ...(process.env.NODE_ENV !== 'production' && {
+          hint: 'Configure Lemon Squeezy in your environment, or use payment bypass only for local development.',
+        }),
       },
       { status: 503 },
     );

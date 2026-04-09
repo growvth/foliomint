@@ -169,11 +169,11 @@ export default function EditorDomainPage() {
 
         {tier === 'free' && (
           <p className="mt-4 rounded-md border border-dashed bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-            Pro feature. Use <code className="text-xs">BYPASS_PAYMENT_GATING</code> in dev or{' '}
+            Custom domains are a Pro feature.{' '}
             <Link href="/pricing" className="text-primary underline">
-              upgrade
-            </Link>
-            .
+              Upgrade
+            </Link>{' '}
+            to connect your own domain.
           </p>
         )}
 

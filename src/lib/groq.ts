@@ -7,7 +7,7 @@ let groqClient: Groq | null = null;
 
 function getGroqClient(): Groq {
   if (!process.env.GROQ_API_KEY) {
-    throw new ParseError('Groq API key is not configured');
+    throw new ParseError('Resume parsing is not available right now. Please try again later.');
   }
   if (!groqClient) {
     groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY });

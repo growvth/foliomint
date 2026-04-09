@@ -129,10 +129,9 @@ export default function IntegrationsPage() {
 
           {tier === 'free' && (
             <p className="mt-4 rounded-md border border-dashed bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-              Pro feature — add links to your live site. In dev, set{' '}
-              <code className="text-xs">BYPASS_PAYMENT_GATING=true</code> or{' '}
+              Add profile links on your live site with{' '}
               <Link href="/pricing" className="text-primary underline">
-                upgrade
+                Pro
               </Link>
               .
             </p>

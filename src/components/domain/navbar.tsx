@@ -4,14 +4,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Sparkles } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/logo';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { cn } from '@/lib/utils';
 
-const navLinks = [
+/** Logged-out visitors: marketing CTAs. */
+const navLinksPublic = [
   { href: '/pricing', label: 'Pricing' },
   { href: '/generate', label: 'Get Started' },
 ] as const;
@@ -28,15 +29,29 @@ export function Navbar() {
         <Logo />
 
         <div className="hidden items-center gap-6 md:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {isSignedIn ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Dashboard
+              </Link>
+              <Button asChild size="sm">
+                <Link href="/upgrade">Upgrade to Pro</Link>
+              </Button>
+            </>
+          ) : (
+            navLinksPublic.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {link.label}
+              </Link>
+            ))
+          )}
           <ThemeToggle />
           {isSignedIn ? (
             <div className="relative">
@@ -80,6 +95,14 @@ export function Navbar() {
                     >
                       <LayoutDashboard className="h-4 w-4" />
                       Dashboard
+                    </Link>
+                    <Link
+                      href="/upgrade"
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Upgrade to Pro
                     </Link>
                     <button
                       type="button"
@@ -139,16 +162,6 @@ export function Navbar() {
         )}
       >
         <div className="flex flex-col gap-2 px-4 py-4">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              onClick={() => setMobileOpen(false)}
-            >
-              {link.label}
-            </Link>
-          ))}
           {isSignedIn ? (
             <>
               <Link
@@ -158,6 +171,9 @@ export function Navbar() {
               >
                 Dashboard
               </Link>
+              <Button asChild className="w-full justify-center" onClick={() => setMobileOpen(false)}>
+                <Link href="/upgrade">Upgrade to Pro</Link>
+              </Button>
               <button
                 type="button"
                 className="rounded-md px-3 py-2 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
@@ -170,9 +186,21 @@ export function Navbar() {
               </button>
             </>
           ) : (
-            <Button asChild className="mt-2">
-              <Link href="/sign-in">Sign In</Link>
-            </Button>
+            <>
+              {navLinksPublic.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <Button asChild className="mt-2">
+                <Link href="/sign-in">Sign In</Link>
+              </Button>
+            </>
           )}
         </div>
       </div>
