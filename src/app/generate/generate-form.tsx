@@ -18,7 +18,7 @@ const ACCEPTED_TYPES = [
 ];
 const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
 
-export function GenerateForm() {
+export function GenerateForm({ isAuthed }: { isAuthed: boolean }) {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -114,6 +114,60 @@ export function GenerateForm() {
   };
 
   const isAuthError = error === 'session_expired';
+
+  if (!isAuthed) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <main className="flex-1 py-16 sm:py-24">
+          <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-10 text-center">
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Create your portfolio</h1>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Sign in to upload your resume. We&apos;ll extract your information—you can use AI for smarter mapping
+                or basic extraction.
+              </p>
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>What happens next</CardTitle>
+                <CardDescription>Typical flow: about 5–15 minutes end to end, depending on edits.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ol className="list-decimal space-y-3 pl-5 text-sm text-muted-foreground">
+                  <li>
+                    <span className="font-medium text-foreground">Sign in</span> with GitHub or Google (free, no card).
+                  </li>
+                  <li>
+                    <span className="font-medium text-foreground">Upload</span> your resume (PDF, DOCX, or TXT).
+                  </li>
+                  <li>
+                    <span className="font-medium text-foreground">Edit &amp; publish</span> in the guided editor—save
+                    and go live when ready.
+                  </li>
+                  <li>
+                    <span className="font-medium text-foreground">Optional:</span> blog and custom domain from{' '}
+                    <span className="text-foreground">portfolio management</span> (Pro where noted).
+                  </li>
+                </ol>
+                <p className="text-xs text-muted-foreground">
+                  Free tier includes a hosted site with plan limits (for example, classic theme and parse caps). See{' '}
+                  <Link href="/pricing" className="font-medium text-primary underline underline-offset-4">
+                    pricing
+                  </Link>{' '}
+                  for details.
+                </p>
+                <Button asChild size="lg" className="w-full">
+                  <Link href="/sign-in?callbackUrl=%2Fgenerate">Sign in to upload</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

@@ -247,8 +247,11 @@ export function DashboardOverview({
                       <Button asChild variant="outline" size="sm" className="min-w-[5.5rem]">
                         <Link href={`/editor/${portfolio.id}`}>
                           <Pencil className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-                          Edit
+                          Edit content
                         </Link>
+                      </Button>
+                      <Button asChild variant="secondary" size="sm" className="min-w-[5.5rem]">
+                        <Link href={`/dashboard/portfolios/${portfolio.id}/manage`}>Manage portfolio</Link>
                       </Button>
                       {portfolio.isPublished && (
                         <Button asChild variant="secondary" size="sm" className="min-w-[5.5rem]">

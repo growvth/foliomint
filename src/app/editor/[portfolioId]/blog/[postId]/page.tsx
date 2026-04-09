@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -111,15 +111,22 @@ export default function EditBlogPostPage() {
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6">
-        <Link
-          href={`/editor/${portfolioId}/blog`}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          All posts
-        </Link>
+        <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
+          <ol className="flex flex-wrap items-center gap-1.5">
+            <li>
+              <Link href={`/editor/${portfolioId}/blog`} className="hover:text-foreground">
+                Blog
+              </Link>
+            </li>
+            <li aria-hidden className="text-muted-foreground/60">
+              /
+            </li>
+            <li className="font-medium text-foreground">Edit post</li>
+          </ol>
+        </nav>
 
-        <h1 className="mt-6 text-2xl font-bold">Edit post</h1>
+        <h1 className="mt-6 text-2xl font-bold tracking-tight">Edit post</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Update this article; changes save when you leave each field.</p>
 
         <Card className="mt-6">
           <CardHeader className="flex flex-row items-center justify-between">

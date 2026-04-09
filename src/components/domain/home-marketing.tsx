@@ -20,44 +20,45 @@ const features = [
   {
     icon: Upload,
     title: 'Upload Your Resume',
-    description: 'Drop your PDF or DOCX and let our AI extract and structure your content.',
+    description: 'Drop your PDF or DOCX and let AI extract and structure your content (daily parse limits on Free).',
   },
   {
     icon: Sparkles,
     title: 'AI-Powered Parsing',
     description:
-      'Groq AI semantically maps your experience, skills, and projects with 95%+ accuracy.',
+      'Optional Groq-powered mapping of experience, skills, and projects—or use basic extraction without AI.',
   },
   {
     icon: Palette,
     title: 'Beautiful Themes',
-    description: 'Choose from professionally designed themes with full light and dark mode support.',
+    description:
+      'Classic theme on Free; Neubrutalism and more on Pro—both with light and dark mode on your live site.',
   },
   {
     icon: Globe,
     title: 'Custom Domains',
-    description: 'Deploy to your own domain or use our hosted subdomain — your choice.',
+    description: 'Use our hosted URL on every plan; connect your own domain on Pro with DNS verification.',
   },
   {
     icon: BarChart3,
     title: 'Analytics Dashboard',
-    description: 'Track views, referrers, devices, and geography to understand your audience.',
+    description: 'View counts on Free; referrers, devices, and geography on Pro.',
   },
   {
     icon: Layers,
     title: 'Platform Integrations',
     description:
-      'Connect GitHub, LeetCode, Dribbble, Medium, and more to enrich your portfolio.',
+      'Link GitHub, LeetCode, Dribbble, Medium, and more from your dashboard (limits may apply by plan).',
   },
 ] as const;
 
 const pricingHighlights = [
-  'Resume upload + AI parsing',
+  '3 AI parses per day (Free)',
   'Editable form editor',
   'Light & dark mode',
   '10 platform integrations',
-  'Basic analytics',
-  'Hosted portfolio',
+  'Basic analytics (views)',
+  'Hosted portfolio (see plan for expiry)',
 ] as const;
 
 export function HomeMarketing() {
@@ -78,8 +79,8 @@ export function HomeMarketing() {
                 Turn your resume into a <span className="text-primary">stunning portfolio</span>
               </h1>
               <p className="mt-6 text-lg leading-8 text-muted-foreground sm:text-xl">
-                Upload your resume, let AI structure your content, customize the design, and deploy a
-                professional portfolio — all in under 5 minutes.
+                Upload your resume, optionally use AI to structure your content, customize in the editor, and publish
+                a professional site—most people finish a first draft in about 5–15 minutes.
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Button asChild size="xl">
@@ -92,10 +93,35 @@ export function HomeMarketing() {
                   <Link href="/pricing">View Pricing</Link>
                 </Button>
               </div>
-              <p className="mt-4 text-sm text-muted-foreground">
-                Sign in to get started — free, no credit card. Then upload your resume and we&apos;ll
-                build your portfolio.
-              </p>
+              <div className="mx-auto mt-6 max-w-lg rounded-xl border border-border/80 bg-muted/30 px-4 py-4 text-left sm:px-5">
+                <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  What happens next
+                </p>
+                <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
+                  <li>
+                    <span className="font-medium text-foreground">Sign in</span> (GitHub or Google)—required before
+                    upload.
+                  </li>
+                  <li>
+                    <span className="font-medium text-foreground">Upload</span> your resume; optional AI parse within
+                    Free daily limits.
+                  </li>
+                  <li>
+                    <span className="font-medium text-foreground">Edit &amp; publish</span> in the guided editor.
+                  </li>
+                  <li>
+                    <span className="font-medium text-foreground">Manage</span> blog, domain, and links from portfolio
+                    management (some features are Pro).
+                  </li>
+                </ol>
+                <p className="mt-3 text-center text-xs text-muted-foreground">
+                  Free tier: no credit card. See{' '}
+                  <Link href="/pricing" className="font-medium text-primary underline underline-offset-4">
+                    pricing
+                  </Link>{' '}
+                  for parse limits, hosted expiry on Free, and Pro features.
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -185,8 +211,8 @@ export function HomeMarketing() {
                   Start free, upgrade when you&apos;re ready
                 </h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  Our free tier gives you everything to create and publish your portfolio. Unlock
-                  unlimited parses, custom domains, and advanced analytics for just $4/month.
+                  Free includes a published site with Classic theme, basic analytics, and 3 AI parses per day. Pro
+                  unlocks unlimited parses, Neubrutalism, blog, custom domains, and advanced analytics—$4/month.
                 </p>
                 <div className="mt-8">
                   <Button asChild size="lg">
@@ -222,7 +248,7 @@ export function HomeMarketing() {
                 Ready to mint your portfolio?
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Join thousands of professionals who&apos;ve turned their resumes into portfolios.
+                Sign in, upload, and ship a first version in minutes—upgrade when you outgrow Free limits.
               </p>
               <div className="mt-10">
                 <Button asChild size="xl">
@@ -232,6 +258,13 @@ export function HomeMarketing() {
                   </Link>
                 </Button>
               </div>
+              <p className="mt-4 text-sm text-muted-foreground">
+                You&apos;ll be asked to sign in before upload. Free tier limits apply; see{' '}
+                <Link href="/pricing" className="text-primary underline underline-offset-4 hover:no-underline">
+                  pricing
+                </Link>
+                .
+              </p>
             </div>
           </div>
         </section>

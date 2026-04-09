@@ -54,6 +54,7 @@ next-env.d.ts
 
 # project direction (internal only, do not publish)
 Agents.md
+UX-FLOW-BACKLOG.md
 
 sample-resumes/
 test/

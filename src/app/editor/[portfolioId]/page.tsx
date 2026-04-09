@@ -1,19 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookOpen, ChevronDown, Globe2, Save, Eye, Globe, Loader2 } from 'lucide-react';
+import { LayoutDashboard, Save, Eye, Globe, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { toastAfterPortfolioSave } from '@/lib/editor-save-toast';
+import { serializeEditorPageState } from '@/lib/editor-state-snapshot';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EditorLivePreview } from '@/components/domain/editor-live-preview';
 import { EditorStepPanels } from '@/components/domain/editor-step-panels';
 import { EditorWizardWorkspace } from '@/components/domain/editor-wizard-workspace';
+import {
+  PublishedEditorChecklist,
+} from '@/components/domain/post-publish-checklist';
 import { editorMonoControlClass } from '@/components/domain/editor-form-ui';
 import { Navbar } from '@/components/domain/navbar';
 import { portfolioSiteBasePath } from '@/lib/public-handle';
@@ -30,6 +34,7 @@ export default function EditorPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [wizardStep, setWizardStep] = useState(0);
+  const saveBaselineRef = useRef<string | null>(null);
 
   useEffect(() => {
     const rawId = params.portfolioId;
@@ -48,7 +53,7 @@ export default function EditorPage() {
           throw new Error('Failed to load portfolio');
         }
         const data = await res.json();
-        setState({
+        const loaded: EditorPageState = {
           id: data.id,
           slug: data.slug,
           publicHandle: data.publicHandle ?? null,
@@ -57,7 +62,9 @@ export default function EditorPage() {
           accentColor: data.accentColor ?? null,
           isPublished: data.isPublished,
           content: data.content,
-        });
+        };
+        setState(loaded);
+        saveBaselineRef.current = serializeEditorPageState(loaded);
         const me = await fetch('/api/me', { credentials: 'include' }).then((r) => r.json() as Promise<{ tier?: string }>);
         setTier(me.tier === 'pro' ? 'pro' : 'free');
         setError(null);
@@ -92,6 +99,7 @@ export default function EditorPage() {
       });
       if (!res.ok) throw new Error('Failed to save portfolio');
       setState(next);
+      saveBaselineRef.current = serializeEditorPageState(next);
       setError(null);
 
       toastAfterPortfolioSave(updates, next, prevPublished);
@@ -162,6 +170,57 @@ export default function EditorPage() {
     slug: state.slug,
   });
 
+  const isDirty =
+    saveBaselineRef.current !== null &&
+    serializeEditorPageState(state) !== saveBaselineRef.current;
+
+  const editorWorkspace = (
+    <EditorWizardWorkspace
+      stepIndex={wizardStep}
+      onStepIndexChange={setWizardStep}
+      footerError={error}
+      onSavePortfolio={() => void handleSave()}
+      savePending={saving}
+      preview={
+        <Card
+          className={cn(
+            previewCardClass,
+            'flex max-h-[min(52vh,520px)] min-h-[260px] flex-col overflow-hidden sm:max-h-[min(640px,calc(100vh-9rem))] lg:max-h-[min(720px,calc(100vh-8.5rem))] lg:min-h-[280px]',
+          )}
+        >
+          <CardHeader className="shrink-0 space-y-1 border-b border-border/60 bg-background/80 pb-4 dark:border-white/10">
+            <CardTitle className={editorCardTitleClass}>Live preview</CardTitle>
+            <p className="font-sans text-xs text-muted-foreground">
+              Updates as you type. Theme: {state.theme === 'neubrutalism' ? 'Neubrutalism' : 'Classic'} — matches what
+              visitors see (they can switch light/dark on the published site).
+            </p>
+          </CardHeader>
+          <CardContent className="relative min-h-0 flex-1 overflow-y-auto bg-background px-4 py-4 sm:px-5">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={wizardStep}
+                initial={{ opacity: 0.72, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0.5, y: -4 }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <EditorLivePreview
+                  content={content}
+                  slug={state.slug}
+                  publicHandle={state.publicHandle}
+                  theme={state.theme}
+                  accentColor={state.accentColor}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+      }
+    >
+      <EditorStepPanels stepIndex={wizardStep} ctx={stepContext} />
+    </EditorWizardWorkspace>
+  );
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -169,9 +228,9 @@ export default function EditorPage() {
       <div className="flex-1">
         {/* Editor toolbar */}
         <div className="sticky top-16 z-40 border-b bg-background/80 backdrop-blur-lg">
-          <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto flex min-h-14 max-w-7xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-2 sm:px-6 lg:px-8">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <span className="text-sm text-muted-foreground">Editing</span>
+              <span className="text-sm text-muted-foreground">Edit content</span>
               <code
                 className="max-w-[min(100%,14rem)] truncate rounded bg-muted px-2 py-0.5 text-xs sm:max-w-xs"
                 title={state.publicHandle ? 'Public URL path' : 'Legacy URL (set a public username in Profile to shorten)'}
@@ -187,8 +246,25 @@ export default function EditorPage() {
               >
                 {tier === 'pro' ? 'Pro' : 'Free'}
               </span>
+              <span
+                className={cn(
+                  'rounded-full border px-2 py-0.5 text-[11px] font-medium tabular-nums',
+                  saving && 'border-border bg-muted/60 text-muted-foreground',
+                  !saving && isDirty && 'border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300',
+                  !saving && !isDirty && 'border-emerald-500/35 bg-emerald-500/10 text-emerald-900 dark:text-emerald-400',
+                )}
+                title={
+                  saving
+                    ? 'Writing changes to the server'
+                    : isDirty
+                      ? 'Changes not saved yet — use Save or Publish to persist'
+                      : 'All edits in the editor match the last save'
+                }
+              >
+                {saving ? 'Saving…' : isDirty ? 'Unsaved changes' : 'Saved'}
+              </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               <label className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
                 Theme
                 <select
@@ -203,43 +279,16 @@ export default function EditorPage() {
                   </option>
                 </select>
               </label>
-              <details className="group relative">
-                <summary
-                  className={cn(
-                    'flex h-8 cursor-pointer list-none items-center gap-1 rounded-md border border-border bg-background px-2.5 text-xs font-medium text-muted-foreground transition-colors',
-                    'hover:bg-muted/60 hover:text-foreground',
-                    '[&::-webkit-details-marker]:hidden',
-                  )}
+              <Button asChild variant="secondary" size="sm" className="h-8 shrink-0 gap-1.5 px-2.5">
+                <Link
+                  href={`/dashboard/portfolios/${state.id}/manage`}
+                  title="Portfolio management: blog, custom domain, live URL, and shortcuts—outside the step-by-step editor below."
                 >
-                  After publishing
-                  <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-70 transition-transform group-open:rotate-180" />
-                </summary>
-                <div
-                  className={cn(
-                    'absolute right-0 top-full z-50 mt-1.5 min-w-[13.5rem] rounded-lg border border-border bg-card p-1 text-card-foreground shadow-lg',
-                    'dark:border-white/10 dark:bg-[hsl(200_14%_11%)]',
-                  )}
-                >
-                  <p className="border-b border-border/60 px-3 py-2 text-[11px] leading-snug text-muted-foreground dark:border-white/10">
-                    Blog and custom domain are usually set up once your portfolio is saved and live—not part of the
-                    profile steps below.
-                  </p>
-                  <Link
-                    href={`/editor/${state.id}/blog`}
-                    className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted/80"
-                  >
-                    <BookOpen className="h-4 w-4 shrink-0 opacity-80" />
-                    Blog
-                  </Link>
-                  <Link
-                    href={`/editor/${state.id}/domain`}
-                    className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted/80"
-                  >
-                    <Globe2 className="h-4 w-4 shrink-0 opacity-80" />
-                    Custom domain
-                  </Link>
-                </div>
-              </details>
+                  <LayoutDashboard className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Manage portfolio</span>
+                  <span className="sm:hidden">Manage</span>
+                </Link>
+              </Button>
               {state.isPublished && (
                 <Button asChild variant="ghost" size="sm">
                   <Link href={liveSitePath} target="_blank">
@@ -274,51 +323,21 @@ export default function EditorPage() {
           </div>
         </div>
 
-        {/* Editor content — stepped wizard + live preview */}
-        <EditorWizardWorkspace
-          stepIndex={wizardStep}
-          onStepIndexChange={setWizardStep}
-          footerError={error}
-          onSavePortfolio={() => void handleSave()}
-          savePending={saving}
-          preview={
-            <Card
-              className={cn(
-                previewCardClass,
-                'flex max-h-[min(52vh,520px)] min-h-[260px] flex-col overflow-hidden sm:max-h-[min(640px,calc(100vh-9rem))] lg:max-h-[min(720px,calc(100vh-8.5rem))] lg:min-h-[280px]',
-              )}
+        {/* Published: slim banner under toolbar (discovery) + full checklist after wizard */}
+        {state.isPublished ? (
+          <Suspense fallback={editorWorkspace}>
+            <PublishedEditorChecklist
+              portfolioId={state.id}
+              publicHandle={state.publicHandle}
+              tier={tier}
+              liveSitePath={liveSitePath}
             >
-              <CardHeader className="shrink-0 space-y-1 border-b border-border/60 bg-background/80 pb-4 dark:border-white/10">
-                <CardTitle className={editorCardTitleClass}>Live preview</CardTitle>
-                <p className="font-sans text-xs text-muted-foreground">
-                  Updates as you type. Theme: {state.theme === 'neubrutalism' ? 'Neubrutalism' : 'Classic'} — matches
-                  what visitors see (they can switch light/dark on the published site).
-                </p>
-              </CardHeader>
-              <CardContent className="relative min-h-0 flex-1 overflow-y-auto bg-background px-4 py-4 sm:px-5">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={wizardStep}
-                    initial={{ opacity: 0.72, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0.5, y: -4 }}
-                    transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <EditorLivePreview
-                      content={content}
-                      slug={state.slug}
-                      publicHandle={state.publicHandle}
-                      theme={state.theme}
-                      accentColor={state.accentColor}
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </CardContent>
-            </Card>
-          }
-        >
-          <EditorStepPanels stepIndex={wizardStep} ctx={stepContext} />
-        </EditorWizardWorkspace>
+              {editorWorkspace}
+            </PublishedEditorChecklist>
+          </Suspense>
+        ) : (
+          editorWorkspace
+        )}
       </div>
     </div>
   );

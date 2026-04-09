@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, Plus, Pencil } from 'lucide-react';
+import { Loader2, Plus, Pencil } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +22,7 @@ export default function EditorBlogListPage() {
   const router = useRouter();
   const id = typeof params.portfolioId === 'string' ? params.portfolioId : params.portfolioId?.[0];
   const [posts, setPosts] = useState<PostRow[]>([]);
+  const [portfolioTitle, setPortfolioTitle] = useState<string | null>(null);
   const [tier, setTier] = useState<'free' | 'pro'>('free');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,10 +31,15 @@ export default function EditorBlogListPage() {
     if (!id) return;
     void (async () => {
       try {
-        const [pr, me] = await Promise.all([
+        const [pr, pf, me] = await Promise.all([
           fetch(`/api/portfolios/${id}/blog`, { credentials: 'include' }),
+          fetch(`/api/portfolios/${id}`, { credentials: 'include' }),
           fetch('/api/me', { credentials: 'include' }),
         ]);
+        if (pf.ok) {
+          const pfJson = (await pf.json()) as { title?: string };
+          if (pfJson.title) setPortfolioTitle(pfJson.title);
+        }
         const meJson = (await me.json()) as { tier?: string };
         setTier(meJson.tier === 'pro' ? 'pro' : 'free');
         if (!pr.ok) {
@@ -71,28 +77,44 @@ export default function EditorBlogListPage() {
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6">
-        <Link
-          href={`/editor/${id}`}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to editor
-        </Link>
+        <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
+          <ol className="flex flex-wrap items-center gap-1.5">
+            <li>
+              <Link href="/dashboard" className="hover:text-foreground">
+                Dashboard
+              </Link>
+            </li>
+            <li aria-hidden className="text-muted-foreground/60">
+              /
+            </li>
+            <li>
+              <Link href={`/dashboard/portfolios/${id}/manage`} className="hover:text-foreground">
+                {portfolioTitle ?? 'Portfolio'}
+              </Link>
+            </li>
+            <li aria-hidden className="text-muted-foreground/60">
+              /
+            </li>
+            <li className="font-medium text-foreground">Blog</li>
+          </ol>
+        </nav>
 
-        <div className="mt-6 flex items-center justify-between gap-4">
+        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Blog posts</h1>
-            <p className="text-sm text-muted-foreground">Markdown posts on your public portfolio.</p>
+            <h1 className="text-2xl font-bold tracking-tight">Blog</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Markdown posts for your public site—create and edit in dedicated flows below.
+            </p>
           </div>
           {tier === 'pro' ? (
-            <Button asChild size="sm">
+            <Button asChild size="default" className="w-full shrink-0 sm:w-auto">
               <Link href={`/editor/${id}/blog/new`}>
                 <Plus className="mr-2 h-4 w-4" />
                 New post
               </Link>
             </Button>
           ) : (
-            <Button size="sm" variant="outline" asChild>
+            <Button size="default" variant="outline" asChild className="w-full shrink-0 sm:w-auto">
               <Link href="/pricing">Upgrade for blog</Link>
             </Button>
           )}
@@ -112,13 +134,34 @@ export default function EditorBlogListPage() {
 
         <div className="mt-8 space-y-3">
           {posts.length === 0 ? (
-            <Card>
+            <Card className="border-dashed">
               <CardHeader>
-                <CardTitle className="text-base">No posts yet</CardTitle>
+                <CardTitle className="text-lg">No posts yet</CardTitle>
                 <CardDescription>
-                  {tier === 'pro' ? 'Create your first post to show it under /your-slug/blog.' : 'Upgrade to add posts.'}
+                  {tier === 'pro'
+                    ? 'Short articles and release notes help visitors learn what you ship—start with one post.'
+                    : 'Blog publishing is included on Pro. Upgrade when you want a /blog on your live site.'}
                 </CardDescription>
               </CardHeader>
+              <CardContent>
+                {tier === 'pro' ? (
+                  <Button asChild>
+                    <Link href={`/editor/${id}/blog/new`}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create your first post
+                    </Link>
+                  </Button>
+                ) : (
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <Button asChild variant="default">
+                      <Link href="/pricing">View Pro &amp; pricing</Link>
+                    </Button>
+                    <p className="text-sm text-muted-foreground">
+                      You can still finish your portfolio on Free—upgrade when you&apos;re ready for a blog.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
             </Card>
           ) : (
             posts.map((p) => (
@@ -134,7 +177,7 @@ export default function EditorBlogListPage() {
                     <Button asChild variant="outline" size="sm">
                       <Link href={`/editor/${id}/blog/${p.id}`}>
                         <Pencil className="mr-1 h-3 w-3" />
-                        Edit
+                        Edit post
                       </Link>
                     </Button>
                   ) : null}
