@@ -93,35 +93,6 @@ export function HomeMarketing() {
                   <Link href="/pricing">View Pricing</Link>
                 </Button>
               </div>
-              <div className="mx-auto mt-6 max-w-lg rounded-xl border border-border/80 bg-muted/30 px-4 py-4 text-left sm:px-5">
-                <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  What happens next
-                </p>
-                <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-                  <li>
-                    <span className="font-medium text-foreground">Sign in</span> (GitHub or Google)—required before
-                    upload.
-                  </li>
-                  <li>
-                    <span className="font-medium text-foreground">Upload</span> your resume; optional AI parse within
-                    Free daily limits.
-                  </li>
-                  <li>
-                    <span className="font-medium text-foreground">Edit &amp; publish</span> in the guided editor.
-                  </li>
-                  <li>
-                    <span className="font-medium text-foreground">Manage</span> blog, domain, and links from portfolio
-                    management (some features are Pro).
-                  </li>
-                </ol>
-                <p className="mt-3 text-center text-xs text-muted-foreground">
-                  Free tier: no credit card. See{' '}
-                  <Link href="/pricing" className="font-medium text-primary underline underline-offset-4">
-                    pricing
-                  </Link>{' '}
-                  for parse limits, hosted expiry on Free, and Pro features.
-                </p>
-              </div>
             </div>
           </div>
         </section>
