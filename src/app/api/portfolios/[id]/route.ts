@@ -185,3 +185,26 @@ export async function PATCH(req: Request, { params }: RouteContext) {
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(_req: Request, { params }: RouteContext) {
+  const appUser = await getCurrentUser();
+  if (!appUser && process.env.NEXTAUTH_DEV_BYPASS !== 'true') {
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  }
+
+  const userId = appUser?.id ?? 'dev-user';
+
+  const existing = await db
+    .select()
+    .from(portfolios)
+    .where(eq(portfolios.id, params.id))
+    .get();
+
+  if (!existing || existing.userId !== userId) {
+    return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 });
+  }
+
+  await db.delete(portfolios).where(eq(portfolios.id, params.id));
+
+  return NextResponse.json({ ok: true });
+}

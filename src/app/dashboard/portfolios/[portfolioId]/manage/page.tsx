@@ -11,6 +11,7 @@ import {
   Loader2,
   Pencil,
   ExternalLink,
+  Trash2,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,8 @@ export default function PortfolioManagePage() {
   const [tier, setTier] = useState<'free' | 'pro'>('free');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -237,6 +240,69 @@ export default function PortfolioManagePage() {
             </span>
           )}
         </p>
+
+        <Card className="mt-10 border-destructive/40 shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+              <Trash2 className="h-5 w-5" aria-hidden />
+            </div>
+            <CardTitle className="text-lg text-destructive">Delete portfolio</CardTitle>
+            <CardDescription>
+              Permanently remove this portfolio, its blog posts, and analytics history. This cannot be undone.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {deleteError ? <p className="text-sm text-destructive">{deleteError}</p> : null}
+            <Button
+              type="button"
+              variant="destructive"
+              className="w-full sm:w-auto"
+              disabled={deleting}
+              onClick={() => {
+                if (
+                  !window.confirm(
+                    `Delete “${title ?? 'this portfolio'}”? This permanently removes the site and all blog posts.`,
+                  )
+                ) {
+                  return;
+                }
+                setDeleteError(null);
+                setDeleting(true);
+                void (async () => {
+                  try {
+                    const res = await fetch(`/api/portfolios/${id}`, { method: 'DELETE', credentials: 'include' });
+                    if (res.status === 401) {
+                      router.push(`/sign-in?callbackUrl=${encodeURIComponent(`/dashboard/portfolios/${id}/manage`)}`);
+                      return;
+                    }
+                    if (!res.ok) {
+                      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+                      throw new Error(body?.error ?? 'Could not delete portfolio');
+                    }
+                    router.push('/dashboard');
+                    router.refresh();
+                  } catch (e) {
+                    setDeleteError(e instanceof Error ? e.message : 'Delete failed');
+                  } finally {
+                    setDeleting(false);
+                  }
+                })();
+              }}
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting…
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete portfolio
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

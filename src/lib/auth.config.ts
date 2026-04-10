@@ -3,6 +3,7 @@ import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
 
 export const authConfig = {
+  trustHost: true,
   secret: process.env.NEXTAUTH_SECRET || 'dev-secret-do-not-use-in-prod',
   providers: [
     GitHub({
@@ -19,6 +20,12 @@ export const authConfig = {
     error: '/sign-in',
   },
   callbacks: {
+    authorized({ auth }) {
+      if (process.env.NEXTAUTH_DEV_BYPASS === 'true') {
+        return true;
+      }
+      return !!auth?.user;
+    },
     session({ session, user }) {
       if (session.user) {
         session.user.id = user.id;
