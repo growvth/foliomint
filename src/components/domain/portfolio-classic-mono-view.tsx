@@ -209,13 +209,13 @@ export function PortfolioClassicMonoView({
 
         <section
           className={cn(
-            'mb-14 border-b border-zinc-200 pb-12 dark:border-zinc-700',
+            'mb-14 border-b border-zinc-200 pb-12 dark:border-zinc-700 sm:mb-16 sm:pb-14',
             narrowLayout
               ? 'flex flex-col gap-6'
-              : 'flex flex-col gap-8 lg:flex-row-reverse lg:items-start lg:justify-between',
+              : 'flex flex-col gap-8 sm:flex-row-reverse sm:items-start sm:justify-between sm:gap-10 lg:gap-14',
           )}
         >
-          <div className={cn('shrink-0', !narrowLayout && 'lg:pt-1')}>
+          <div className={cn('shrink-0', !narrowLayout && 'sm:pt-1')}>
             {content.profileImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -223,14 +223,14 @@ export function PortfolioClassicMonoView({
                 alt={displayName}
                 className={cn(
                   'border border-zinc-300 object-cover dark:border-zinc-600',
-                  narrowLayout ? 'h-20 w-20' : 'h-24 w-24 sm:h-28 sm:w-28',
+                  narrowLayout ? 'h-20 w-20' : 'h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32',
                 )}
               />
             ) : (
               <div
                 className={cn(
                   'flex items-center justify-center border border-zinc-300 font-bold text-zinc-400 dark:border-zinc-600 dark:text-zinc-500',
-                  narrowLayout ? 'h-20 w-20 text-xl' : 'h-24 w-24 text-2xl sm:h-28 sm:w-28',
+                  narrowLayout ? 'h-20 w-20 text-xl' : 'h-24 w-24 text-2xl sm:h-28 sm:w-28 md:h-32 md:w-32',
                 )}
               >
                 {initial}
@@ -244,7 +244,7 @@ export function PortfolioClassicMonoView({
             <h1
               className={cn(
                 'break-words font-bold leading-tight tracking-tight text-zinc-950 dark:text-zinc-50',
-                narrowLayout ? 'text-2xl' : 'text-3xl sm:text-4xl md:text-5xl',
+                narrowLayout ? 'text-2xl' : 'text-[clamp(1.75rem,3vw+0.5rem,3rem)]',
               )}
             >
               {displayName}
@@ -278,9 +278,9 @@ export function PortfolioClassicMonoView({
         </section>
 
         {bioParagraphs.length > 0 && (
-          <section id="about" className="mb-14 scroll-mt-24">
+          <section id="about" className="mb-14 scroll-mt-24 sm:mb-16">
             <SectionTitle>About</SectionTitle>
-            <div className="space-y-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
+            <div className="max-w-prose space-y-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-[15px] sm:leading-[1.75]">
               {bioParagraphs.map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
@@ -289,9 +289,9 @@ export function PortfolioClassicMonoView({
         )}
 
         {sortedExperience.length > 0 && (
-          <section id="experience" className="mb-14 scroll-mt-24">
+          <section id="experience" className="mb-14 scroll-mt-24 sm:mb-16">
             <SectionTitle>Work experience</SectionTitle>
-            <div className="space-y-10">
+            <div className="space-y-10 sm:space-y-12">
               {sortedExperience.map((exp, idx) => {
                 const dateStr = `${exp.startDate}${exp.endDate ? ` — ${exp.endDate}` : ' — Present'}`;
                 return (
@@ -299,7 +299,7 @@ export function PortfolioClassicMonoView({
                     <div
                       className={cn(
                         'flex flex-col gap-2',
-                        !narrowLayout && 'sm:flex-row sm:items-baseline sm:justify-between',
+                        !narrowLayout && 'sm:flex-row sm:items-baseline sm:justify-between sm:gap-4',
                       )}
                     >
                       <h3
@@ -311,18 +311,19 @@ export function PortfolioClassicMonoView({
                         {exp.role}
                       </h3>
                       {exp.location ? (
-                        <span className="w-fit rounded border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-600 dark:border-zinc-600 dark:bg-zinc-900/60 dark:text-zinc-400">
+                        <span className="w-fit shrink-0 border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-600 dark:border-zinc-600 dark:bg-zinc-900/60 dark:text-zinc-400">
                           {exp.location}
                         </span>
                       ) : null}
                     </div>
-                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-500">{exp.company}</p>
-                    <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-600">{dateStr}</p>
+                    <p className="mt-1.5 text-sm text-zinc-600 dark:text-zinc-500">{exp.company}</p>
+                    <p className="mt-2 text-xs font-medium tabular-nums text-zinc-500 dark:text-zinc-600">{dateStr}</p>
                     {exp.bullets && exp.bullets.length > 0 ? (
-                      <ul className="mt-4 list-inside list-disc space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                      <ul className="mt-4 space-y-2.5 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:mt-5">
                         {exp.bullets.map((b, i) => (
-                          <li key={i} className="pl-1">
-                            {b}
+                          <li key={i} className="flex gap-3">
+                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400 dark:bg-zinc-600" aria-hidden />
+                            <span>{b}</span>
                           </li>
                         ))}
                       </ul>
@@ -335,17 +336,17 @@ export function PortfolioClassicMonoView({
         )}
 
         {content.education && content.education.length > 0 && (
-          <section id="education" className="mb-14 scroll-mt-24">
+          <section id="education" className="mb-14 scroll-mt-24 sm:mb-16">
             <SectionTitle>Education</SectionTitle>
             <div className="space-y-8">
               {content.education.map((edu, idx) => (
                 <article key={`edu-${idx}`}>
-                  <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">{edu.institution}</h3>
-                  <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-500">
+                  <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">{edu.institution}</h3>
+                  <p className="mt-1.5 text-sm text-zinc-600 dark:text-zinc-500">
                     {edu.degree}
                     {edu.field ? ` · ${edu.field}` : ''}
                   </p>
-                  <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-600">
+                  <p className="mt-2 text-xs font-medium tabular-nums text-zinc-500 dark:text-zinc-600">
                     {edu.startDate}
                     {edu.endDate ? ` — ${edu.endDate}` : ''}
                     {edu.gpa ? ` · GPA ${edu.gpa}` : ''}
@@ -357,31 +358,34 @@ export function PortfolioClassicMonoView({
         )}
 
         {content.projects && content.projects.length > 0 && (
-          <section id="projects" className="mb-14 scroll-mt-24">
+          <section id="projects" className="mb-14 scroll-mt-24 sm:mb-16">
             <SectionTitle>Projects</SectionTitle>
-            <div className="space-y-10">
+            <div className="space-y-10 sm:space-y-12">
               {content.projects.map((project, idx) => (
                 <article key={`proj-${idx}`}>
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">{project.name}</h3>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                    <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg">{project.name}</h3>
                     {project.url ? (
                       <a
                         href={normalizeOutboundHref(project.url)}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs font-bold text-[var(--portfolio-accent)] underline underline-offset-4 hover:opacity-90"
+                        className="shrink-0 text-xs font-bold text-[var(--portfolio-accent)] underline underline-offset-4 hover:opacity-90"
                       >
                         Open link
                       </a>
                     ) : null}
                   </div>
                   {project.description ? (
-                    <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{project.description}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:mt-3">{project.description}</p>
                   ) : null}
                   {project.bullets && project.bullets.length > 0 ? (
-                    <ul className="mt-3 list-inside list-disc space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400">
+                    <ul className="mt-4 space-y-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                       {project.bullets.map((b, i) => (
-                        <li key={i}>{b}</li>
+                        <li key={i} className="flex gap-3">
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400 dark:bg-zinc-600" aria-hidden />
+                          <span>{b}</span>
+                        </li>
                       ))}
                     </ul>
                   ) : null}
@@ -392,13 +396,13 @@ export function PortfolioClassicMonoView({
         )}
 
         {content.skills && content.skills.length > 0 && (
-          <section id="skills" className="mb-14 scroll-mt-24">
+          <section id="skills" className="mb-14 scroll-mt-24 sm:mb-16">
             <SectionTitle>Skills</SectionTitle>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {content.skills.map((skill) => (
                 <span
                   key={skill}
-                  className="rounded px-2 py-0.5 text-xs font-medium leading-none bg-[var(--portfolio-accent)] text-zinc-950 dark:text-[#09090b]"
+                  className="border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-medium leading-none text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-300"
                 >
                   {skill}
                 </span>
@@ -408,27 +412,33 @@ export function PortfolioClassicMonoView({
         )}
 
         {content.awards && content.awards.filter(Boolean).length > 0 && (
-          <section className="mb-14">
+          <section className="mb-14 sm:mb-16">
             <SectionTitle>Awards</SectionTitle>
-            <ul className="list-inside list-disc space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <ul className="space-y-2.5 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
               {content.awards.filter(Boolean).map((a, i) => (
-                <li key={i}>{a}</li>
+                <li key={i} className="flex gap-3">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400 dark:bg-zinc-600" aria-hidden />
+                  <span>{a}</span>
+                </li>
               ))}
             </ul>
           </section>
         )}
 
         {content.extracurricular && content.extracurricular.length > 0 && (
-          <section className="mb-14">
+          <section className="mb-14 sm:mb-16">
             <SectionTitle>Extracurricular</SectionTitle>
             <div className="space-y-8">
               {content.extracurricular.map((block, idx) => (
                 <article key={`ex-${idx}`}>
                   <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">{block.title}</h3>
                   {block.bullets.length > 0 ? (
-                    <ul className="mt-3 list-inside list-disc space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400">
+                    <ul className="mt-3 space-y-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                       {block.bullets.map((b, i) => (
-                        <li key={i}>{b}</li>
+                        <li key={i} className="flex gap-3">
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400 dark:bg-zinc-600" aria-hidden />
+                          <span>{b}</span>
+                        </li>
                       ))}
                     </ul>
                   ) : null}
@@ -439,14 +449,17 @@ export function PortfolioClassicMonoView({
         )}
 
         {content.otherSections && content.otherSections.length > 0 && (
-          <section className="mb-14 space-y-12">
+          <section className="mb-14 space-y-12 sm:mb-16">
             {content.otherSections.map((block, idx) => (
               <div key={`other-${idx}`}>
                 <SectionTitle>{block.title || 'Section'}</SectionTitle>
                 {block.bullets.length > 0 ? (
-                  <ul className="list-inside list-disc space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  <ul className="space-y-2.5 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                     {block.bullets.map((b, i) => (
-                      <li key={i}>{b}</li>
+                      <li key={i} className="flex gap-3">
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400 dark:bg-zinc-600" aria-hidden />
+                        <span>{b}</span>
+                      </li>
                     ))}
                   </ul>
                 ) : null}
@@ -456,7 +469,7 @@ export function PortfolioClassicMonoView({
         )}
 
         {!narrowLayout ? (
-          <div className="mt-16 rounded-none border-t border-zinc-200 bg-zinc-100/80 px-4 py-5 sm:px-5 dark:border-zinc-800 dark:bg-zinc-900/50">
+          <div className="mt-16 border-t border-zinc-200 bg-zinc-100/80 px-5 py-6 sm:mt-20 sm:px-6 sm:py-8 dark:border-zinc-800 dark:bg-zinc-900/50">
             <PortfolioPublicFooter neu={false} label="Published profile" band />
           </div>
         ) : null}

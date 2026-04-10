@@ -38,11 +38,11 @@ export function PortfolioBlogPost({
           <PortfolioPublicThemeToggle variant={neu ? 'neu' : 'classic'} />
         </div>
 
-        <header className={cn('mt-10', portfolioHeaderRuleClass(neu))}>
+        <header className={cn('mt-10 sm:mt-12', portfolioHeaderRuleClass(neu))}>
           <p className={portfolioEyebrowClass(neu)}>Post</p>
           <h1
             className={cn(
-              'mt-3 text-[clamp(1.75rem,3vw+1rem,2.75rem)] font-semibold leading-tight tracking-tight text-zinc-950 dark:text-zinc-50',
+              'mt-3 text-[clamp(1.5rem,3vw+0.5rem,2.75rem)] font-semibold leading-tight tracking-tight text-zinc-950 dark:text-zinc-50',
               neu && 'uppercase',
             )}
           >
@@ -59,7 +59,7 @@ export function PortfolioBlogPost({
 
         <div
           className={cn(
-            'prose prose-neutral prose-lg mt-12 max-w-none dark:prose-invert',
+            'prose prose-neutral mt-10 max-w-none dark:prose-invert sm:prose-lg sm:mt-12',
             'prose-headings:tracking-tight prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100',
             'prose-p:text-zinc-700 dark:prose-p:text-zinc-300',
             'prose-li:text-zinc-700 dark:prose-li:text-zinc-300',

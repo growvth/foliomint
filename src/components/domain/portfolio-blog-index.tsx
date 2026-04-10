@@ -49,25 +49,25 @@ export async function PortfolioBlogIndex({
         <PortfolioPublicThemeToggle variant={neu ? 'neu' : 'classic'} />
       </div>
 
-      <header className={cn('mt-10', portfolioHeaderRuleClass(neu))}>
+      <header className={cn('mt-10 sm:mt-12', portfolioHeaderRuleClass(neu))}>
         <p className={portfolioEyebrowClass(neu)}>Writing</p>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <span className={portfolioSectionAccentClass(neu)} aria-hidden />
           <h1
             className={cn(
-              'text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50 lg:text-5xl',
+              'text-[clamp(1.75rem,3vw+0.5rem,3rem)] font-semibold tracking-tight text-zinc-950 dark:text-zinc-50',
               neu && 'uppercase tracking-wider',
             )}
           >
             Blog
           </h1>
         </div>
-        <p className="mt-4 max-w-2xl text-pretty text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
+        <p className="mt-4 max-w-2xl text-pretty text-base leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-lg">
           {portfolio.title}
         </p>
       </header>
 
-      <ul className="mt-12 space-y-5">
+      <ul className="mt-10 space-y-5 sm:mt-12">
         {posts.length === 0 ? (
           <li className="text-sm text-zinc-600 dark:text-zinc-500">No posts yet.</li>
         ) : (

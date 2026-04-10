@@ -10,7 +10,7 @@ export function portfolioShellClass(_neu: boolean): string {
  * Blog post uses the same outer padding; inner prose width is constrained separately.
  */
 export function portfolioContentContainerClass(): string {
-  return 'mx-auto max-w-5xl px-5 pb-24 pt-10 sm:px-8 lg:px-12 lg:pb-28 lg:pt-14';
+  return 'mx-auto max-w-5xl px-5 pb-20 pt-8 sm:px-8 sm:pb-24 sm:pt-10 lg:px-12 lg:pb-28 lg:pt-14';
 }
 
 /** Narrow column for long-form reading (blog post body). */
@@ -28,9 +28,11 @@ export function portfolioNavPillClass(neu: boolean): string {
         'dark:border-zinc-200 dark:bg-zinc-950 dark:text-zinc-100 dark:shadow-[4px_4px_0_0_rgb(228_228_231)]',
       )
     : cn(
-        'inline-flex items-center justify-center rounded-full border border-[var(--portfolio-accent-border)]',
-        'bg-[var(--portfolio-accent-softer)] px-5 py-2 text-sm font-semibold text-[var(--portfolio-accent)]',
-        'no-underline transition-colors hover:bg-[var(--portfolio-accent-soft)]',
+        'inline-flex items-center justify-center border border-zinc-300 bg-white px-5 py-2',
+        'text-sm font-semibold text-zinc-700 no-underline transition-colors',
+        'hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]',
+        'dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-300',
+        'dark:hover:border-[var(--portfolio-accent)] dark:hover:text-[var(--portfolio-accent)]',
       );
 }
 
@@ -66,7 +68,7 @@ export function portfolioSectionAccentClass(neu: boolean): string {
         'shadow-[4px_4px_0_0_rgb(24_24_27)]',
         'dark:border-zinc-200 dark:shadow-[4px_4px_0_0_rgb(228_228_231)]',
       )
-    : 'block h-9 w-1 shrink-0 rounded-full bg-[var(--portfolio-accent)]';
+    : 'block h-9 w-1 shrink-0 bg-[var(--portfolio-accent)]';
 }
 
 /** Primary content cards (experience, education, projects, awards, blog list items). */
@@ -77,11 +79,11 @@ export function portfolioCardClass(neu: boolean): string {
         'dark:border-zinc-200 dark:bg-zinc-900/70 dark:shadow-[6px_6px_0_0_rgb(228_228_231)]',
       )
     : cn(
-        'rounded-2xl border border-zinc-200 bg-white/90 shadow-sm',
+        'border border-zinc-200 bg-white/90',
         'transition-[transform,box-shadow,border-color] duration-300',
-        'hover:-translate-y-0.5 hover:border-[var(--portfolio-accent-border)] hover:shadow-lg hover:shadow-[var(--portfolio-accent-softer)]',
+        'hover:-translate-y-0.5 hover:border-[var(--portfolio-accent)] hover:shadow-md',
         'dark:border-zinc-700/90 dark:bg-zinc-900/45',
-        'dark:hover:border-[var(--portfolio-accent-border)] dark:hover:shadow-[var(--portfolio-accent-softer)]',
+        'dark:hover:border-[var(--portfolio-accent)]',
       );
 }
 
@@ -96,9 +98,8 @@ export function portfolioSkillChipClass(neu: boolean): string {
         'dark:border-zinc-200 dark:bg-zinc-950 dark:text-zinc-100 dark:shadow-[3px_3px_0_0_rgb(228_228_231)]',
       )
     : cn(
-        'rounded-full border border-[var(--portfolio-accent-border)] bg-[var(--portfolio-accent-softer)] px-2.5 py-0.5',
-        'text-xs font-medium leading-none text-zinc-800 transition-colors hover:border-[var(--portfolio-accent)]/55 hover:bg-[var(--portfolio-accent-soft)]',
-        'dark:text-zinc-200 dark:hover:border-[var(--portfolio-accent)]/55',
+        'border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-medium leading-none text-zinc-700',
+        'dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-300',
       );
 }
 
@@ -124,9 +125,11 @@ export function portfolioOutboundChipClass(neu: boolean): string {
         'dark:border-zinc-200 dark:bg-zinc-950 dark:text-zinc-100 dark:shadow-[4px_4px_0_0_rgb(228_228_231)]',
       )
     : cn(
-        'inline-flex items-center justify-center rounded-full border border-[var(--portfolio-accent-border)]',
-        'bg-[var(--portfolio-accent-softer)] px-4 py-2 text-sm font-semibold text-[var(--portfolio-accent)]',
-        'no-underline transition-colors hover:bg-[var(--portfolio-accent-soft)]',
+        'inline-flex items-center justify-center border border-zinc-300 bg-white px-4 py-2',
+        'text-sm font-semibold text-zinc-700 no-underline transition-colors',
+        'hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)]',
+        'dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-300',
+        'dark:hover:border-[var(--portfolio-accent)] dark:hover:text-[var(--portfolio-accent)]',
       );
 }
 
@@ -159,16 +162,16 @@ export function portfolioBulletDotClass(neu: boolean): string {
         'mt-2.5 h-2 w-2 shrink-0 rounded-none border-2 border-zinc-900 bg-[var(--portfolio-accent)]',
         'dark:border-zinc-200',
       )
-    : 'mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--portfolio-accent)]/80';
+    : 'mt-2 h-1.5 w-1.5 shrink-0 bg-zinc-400 dark:bg-zinc-600';
 }
 
 export function portfolioFooterRuleClass(neu: boolean): string {
   return cn(
-    'mt-20 flex flex-col gap-3 border-t border-zinc-200 pt-10 sm:flex-row sm:items-center sm:justify-between',
+    'mt-16 flex flex-col gap-3 border-t border-zinc-200 pt-8 sm:mt-20 sm:flex-row sm:items-center sm:justify-between sm:pt-10',
     'dark:border-zinc-700',
     neu && 'border-zinc-300 dark:border-zinc-600',
   );
 }
 
 /** Space between major sections on the page. */
-export const PORTFOLIO_SECTION_GAP = 'mt-14 space-y-20 sm:mt-16 lg:mt-20';
+export const PORTFOLIO_SECTION_GAP = 'mt-12 space-y-16 sm:mt-16 sm:space-y-20 lg:mt-20';

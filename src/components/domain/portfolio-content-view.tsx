@@ -134,18 +134,18 @@ export function PortfolioContentView({
         </div>
 
         <header className={portfolioHeaderRuleClass(neu)}>
-          <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-12 xl:gap-16">
-            <div className="shrink-0 lg:pt-1">
+          <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:gap-10 lg:gap-14">
+            <div className="shrink-0 sm:pt-1">
               {content.profileImageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={content.profileImageUrl}
                   alt={content.name}
-                  className="h-28 w-28 rounded-none border-4 border-zinc-900 object-cover shadow-[8px_8px_0_0_rgb(24_24_27)] dark:border-zinc-200 dark:shadow-[8px_8px_0_0_rgb(228_228_231)] sm:h-32 sm:w-32"
+                  className="h-24 w-24 rounded-none border-4 border-zinc-900 object-cover shadow-[6px_6px_0_0_rgb(24_24_27)] dark:border-zinc-200 dark:shadow-[6px_6px_0_0_rgb(228_228_231)] sm:h-28 sm:w-28 sm:shadow-[8px_8px_0_0_rgb(24_24_27)] md:h-32 md:w-32 dark:sm:shadow-[8px_8px_0_0_rgb(228_228_231)]"
                 />
               ) : (
                 <div
-                  className="flex h-28 w-28 items-center justify-center rounded-none border-4 border-zinc-900 bg-[var(--portfolio-accent-softer)] text-3xl font-bold text-[var(--portfolio-accent)] shadow-[8px_8px_0_0_rgb(24_24_27)] dark:border-zinc-200 dark:shadow-[8px_8px_0_0_rgb(228_228_231)] sm:h-32 sm:w-32 sm:text-4xl"
+                  className="flex h-24 w-24 items-center justify-center rounded-none border-4 border-zinc-900 bg-[var(--portfolio-accent-softer)] text-2xl font-bold text-[var(--portfolio-accent)] shadow-[6px_6px_0_0_rgb(24_24_27)] dark:border-zinc-200 dark:shadow-[6px_6px_0_0_rgb(228_228_231)] sm:h-28 sm:w-28 sm:text-3xl sm:shadow-[8px_8px_0_0_rgb(24_24_27)] md:h-32 md:w-32 md:text-4xl dark:sm:shadow-[8px_8px_0_0_rgb(228_228_231)]"
                   aria-hidden
                 >
                   {(content.name?.charAt(0) || slug.charAt(0) || '?').toUpperCase()}
@@ -153,13 +153,13 @@ export function PortfolioContentView({
               )}
             </div>
 
-            <div className="min-w-0 flex-1 space-y-5">
+            <div className="min-w-0 flex-1 space-y-4 sm:space-y-5">
               <p className={portfolioEyebrowClass(neu)}>Portfolio</p>
-              <h1 className="text-[clamp(1.85rem,4vw+1rem,3.25rem)] font-semibold uppercase leading-[1.08] tracking-[0.06em] text-zinc-950 dark:text-zinc-50">
+              <h1 className="text-[clamp(1.75rem,3.5vw+0.5rem,3.25rem)] font-semibold uppercase leading-[1.08] tracking-[0.06em] text-zinc-950 dark:text-zinc-50">
                 {content.name || slug}
               </h1>
               {content.bio && (
-                <p className="max-w-2xl text-pretty text-lg font-medium leading-relaxed text-zinc-600 dark:text-zinc-300 sm:text-xl">
+                <p className="max-w-2xl text-pretty text-base font-medium leading-relaxed text-zinc-600 dark:text-zinc-300 sm:text-lg md:text-xl">
                   {content.bio}
                 </p>
               )}
@@ -190,9 +190,9 @@ export function PortfolioContentView({
 
                   return (
                     <div key={`exp-${idx}`} className={cn(card, pad)}>
-                      <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0">
-                          <h3 className="text-lg font-bold uppercase leading-tight tracking-tight text-zinc-950 dark:text-zinc-50">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base font-bold uppercase leading-tight tracking-tight text-zinc-950 dark:text-zinc-50 sm:text-lg">
                             {exp.role}
                           </h3>
                           <p className="mt-2 text-sm font-bold text-zinc-600 dark:text-zinc-500">{exp.company}</p>
@@ -221,10 +221,10 @@ export function PortfolioContentView({
           {content.education && content.education.length > 0 && (
             <section>
               <SectionHeading neu={neu}>Education</SectionHeading>
-              <div className="grid gap-5 md:grid-cols-2">
+              <div className={cn('grid gap-5', content.education.length > 1 && 'sm:grid-cols-2')}>
                 {content.education.map((edu, idx) => (
                   <div key={`${edu.institution}-${idx}`} className={cn(card, pad)}>
-                    <h3 className="text-lg font-semibold leading-snug text-zinc-900 dark:text-zinc-100">{edu.institution}</h3>
+                    <h3 className="text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-100 sm:text-lg">{edu.institution}</h3>
                     <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-500">
                       {edu.degree}
                       {edu.field ? ` · ${edu.field}` : ''}
@@ -243,11 +243,11 @@ export function PortfolioContentView({
           {content.projects && content.projects.length > 0 && (
             <section>
               <SectionHeading neu={neu}>Projects</SectionHeading>
-              <div className={cn('grid gap-5', content.projects.length > 1 && 'lg:grid-cols-2')}>
+              <div className={cn('grid gap-5', content.projects.length > 1 && 'sm:grid-cols-2')}>
                 {content.projects.map((project, idx) => (
                   <div key={`${project.name}-${idx}`} className={cn('flex flex-col', card, pad)}>
                     <div className="flex flex-wrap items-start justify-between gap-3">
-                      <h3 className="text-lg font-semibold leading-snug text-zinc-900 dark:text-zinc-100">{project.name}</h3>
+                      <h3 className="text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-100 sm:text-lg">{project.name}</h3>
                       {project.url && (
                         <a
                           href={normalizeOutboundHref(project.url)}
