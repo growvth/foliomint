@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { eq, or } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
-import { users } from '@/lib/db/schema';
+import { portfolios, users } from '@/lib/db/schema';
 import { mapLemonSubscriptionStatus, verifyLemonSqueezyWebhookSignature } from '@/lib/lemonsqueezy';
 
 type WebhookPayload = {
@@ -69,6 +69,13 @@ export async function POST(request: Request) {
         lemonSqueezySubscriptionId: subscriptionId,
       })
       .where(eq(users.id, userId));
+
+    if (appStatus === 'active') {
+      await db
+        .update(portfolios)
+        .set({ expiresAt: null, updatedAt: new Date() })
+        .where(eq(portfolios.userId, userId));
+    }
   };
 
   const findUserId = (): string | undefined => {
@@ -87,14 +94,28 @@ export async function POST(request: Request) {
         break;
       }
       if (userEmail) {
+        const appStatus = lsStatus ? mapLemonSubscriptionStatus(lsStatus) : 'active';
+        const byEmail = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.email, userEmail))
+          .get();
+
         await db
           .update(users)
           .set({
-            subscriptionStatus: lsStatus ? mapLemonSubscriptionStatus(lsStatus) : 'active',
+            subscriptionStatus: appStatus,
             ...(customerId ? { lemonSqueezyCustomerId: customerId } : {}),
             lemonSqueezySubscriptionId: subscriptionId,
           })
           .where(eq(users.email, userEmail));
+
+        if (appStatus === 'active' && byEmail?.id) {
+          await db
+            .update(portfolios)
+            .set({ expiresAt: null, updatedAt: new Date() })
+            .where(eq(portfolios.userId, byEmail.id));
+        }
       }
       break;
     }
@@ -120,6 +141,12 @@ export async function POST(request: Request) {
             ...(customerId ? { lemonSqueezyCustomerId: customerId } : {}),
           })
           .where(eq(users.id, bySub.id));
+        if (appStatus === 'active') {
+          await db
+            .update(portfolios)
+            .set({ expiresAt: null, updatedAt: new Date() })
+            .where(eq(portfolios.userId, bySub.id));
+        }
         break;
       }
 
@@ -130,6 +157,12 @@ export async function POST(request: Request) {
       }
 
       if (userEmail) {
+        const byEmail = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.email, userEmail))
+          .get();
+
         await db
           .update(users)
           .set({
@@ -138,6 +171,13 @@ export async function POST(request: Request) {
             lemonSqueezySubscriptionId: subscriptionId,
           })
           .where(eq(users.email, userEmail));
+
+        if (appStatus === 'active' && byEmail?.id) {
+          await db
+            .update(portfolios)
+            .set({ expiresAt: null, updatedAt: new Date() })
+            .where(eq(portfolios.userId, byEmail.id));
+        }
       }
       break;
     }

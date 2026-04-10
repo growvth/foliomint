@@ -121,13 +121,21 @@ export default function EditorBlogListPage() {
         </div>
 
         {tier === 'free' && (
-          <p className="mt-4 rounded-md border border-dashed bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-            Blog publishing is a Pro feature.{' '}
-            <Link href="/pricing" className="text-primary underline">
-              Upgrade
-            </Link>{' '}
-            to publish posts on your site.
-          </p>
+          <Card className="mt-4 border-dashed bg-muted/20">
+            <CardContent className="space-y-3 py-4">
+              <p className="text-sm text-muted-foreground">
+                Add a `/blog` to your portfolio to share updates, writing, and project notes.
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button asChild size="sm">
+                  <Link href={`/pricing?from=${encodeURIComponent(`/editor/${id}/blog`)}&intent=blog`}>Upgrade for blog</Link>
+                </Button>
+                <Button asChild size="sm" variant="outline">
+                  <Link href={`/dashboard/portfolios/${id}/manage`}>Back to portfolio management</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
@@ -154,10 +162,12 @@ export default function EditorBlogListPage() {
                 ) : (
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <Button asChild variant="default">
-                      <Link href="/pricing">View Pro &amp; pricing</Link>
+                      <Link href={`/pricing?from=${encodeURIComponent(`/editor/${id}/blog`)}&intent=blog`}>
+                        View plans for blog
+                      </Link>
                     </Button>
                     <p className="text-sm text-muted-foreground">
-                      You can still finish your portfolio on Free—upgrade when you&apos;re ready for a blog.
+                      Your portfolio editing stays available now, and you can add blog publishing when needed.
                     </p>
                   </div>
                 )}

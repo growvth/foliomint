@@ -15,7 +15,7 @@ export function PortfolioPublicFooter({
     <footer
       className={
         band
-          ? cn('flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between')
+          ? 'flex flex-col items-center gap-2 text-center sm:gap-3'
           : portfolioFooterRuleClass(neu)
       }
     >

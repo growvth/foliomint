@@ -168,13 +168,23 @@ export default function EditorDomainPage() {
         </p>
 
         {tier === 'free' && (
-          <p className="mt-4 rounded-md border border-dashed bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-            Custom domains are a Pro feature.{' '}
-            <Link href="/pricing" className="text-primary underline">
-              Upgrade
-            </Link>{' '}
-            to connect your own domain.
-          </p>
+          <Card className="mt-4 border-dashed bg-muted/20">
+            <CardContent className="space-y-3 py-4">
+              <p className="text-sm text-muted-foreground">
+                Connect your own domain for cleaner links and stronger personal branding.
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button asChild size="sm">
+                  <Link href={`/pricing?from=${encodeURIComponent(`/editor/${id}/domain`)}&intent=domain`}>
+                    Upgrade for domain
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="outline">
+                  <Link href={`/dashboard/portfolios/${id}/manage`}>Back to portfolio management</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         <Card className="mt-6">

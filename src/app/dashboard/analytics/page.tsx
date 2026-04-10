@@ -5,7 +5,8 @@ import { ArrowLeft, BarChart3 } from 'lucide-react';
 
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { portfolios, viewLogs } from '@/lib/db/schema';
+import { portfolios, users, viewLogs } from '@/lib/db/schema';
+import { isPaymentGatingBypassed } from '@/lib/feature-flags';
 import { Navbar } from '@/components/domain/navbar';
 import { portfolioSiteBasePath } from '@/lib/public-handle';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +38,14 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
   const userId = user?.id ?? 'dev-user';
   const window = firstString(searchParams?.w) ?? '30d';
   const since = getSince(window);
+  const bypass = isPaymentGatingBypassed();
+
+  const dbUser = await db
+    .select({ subscriptionStatus: users.subscriptionStatus })
+    .from(users)
+    .where(eq(users.id, userId))
+    .get();
+  const hasAdvancedAnalytics = bypass || dbUser?.subscriptionStatus === 'active';
 
   const userPortfolios = await db
     .select({
@@ -70,40 +79,46 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
     0,
   );
 
-  const referrers = await db
-    .select({
-      label: sql<string>`coalesce(nullif(${viewLogs.referrer}, ''), 'Direct')`,
-      n: sql<number>`count(*)`,
-    })
-    .from(viewLogs)
-    .innerJoin(portfolios, eq(viewLogs.portfolioId, portfolios.id))
-    .where(baseWhere)
-    .groupBy(sql`coalesce(nullif(${viewLogs.referrer}, ''), 'Direct')`)
-    .orderBy(desc(sql<number>`count(*)`))
-    .limit(8);
+  const referrers = hasAdvancedAnalytics
+    ? await db
+        .select({
+          label: sql<string>`coalesce(nullif(${viewLogs.referrer}, ''), 'Direct')`,
+          n: sql<number>`count(*)`,
+        })
+        .from(viewLogs)
+        .innerJoin(portfolios, eq(viewLogs.portfolioId, portfolios.id))
+        .where(baseWhere)
+        .groupBy(sql`coalesce(nullif(${viewLogs.referrer}, ''), 'Direct')`)
+        .orderBy(desc(sql<number>`count(*)`))
+        .limit(8)
+    : [];
 
-  const devices = await db
-    .select({
-      label: sql<string>`coalesce(nullif(${viewLogs.device}, ''), 'unknown')`,
-      n: sql<number>`count(*)`,
-    })
-    .from(viewLogs)
-    .innerJoin(portfolios, eq(viewLogs.portfolioId, portfolios.id))
-    .where(baseWhere)
-    .groupBy(sql`coalesce(nullif(${viewLogs.device}, ''), 'unknown')`)
-    .orderBy(desc(sql<number>`count(*)`));
+  const devices = hasAdvancedAnalytics
+    ? await db
+        .select({
+          label: sql<string>`coalesce(nullif(${viewLogs.device}, ''), 'unknown')`,
+          n: sql<number>`count(*)`,
+        })
+        .from(viewLogs)
+        .innerJoin(portfolios, eq(viewLogs.portfolioId, portfolios.id))
+        .where(baseWhere)
+        .groupBy(sql`coalesce(nullif(${viewLogs.device}, ''), 'unknown')`)
+        .orderBy(desc(sql<number>`count(*)`))
+    : [];
 
-  const countries = await db
-    .select({
-      label: sql<string>`coalesce(nullif(${viewLogs.country}, ''), 'unknown')`,
-      n: sql<number>`count(*)`,
-    })
-    .from(viewLogs)
-    .innerJoin(portfolios, eq(viewLogs.portfolioId, portfolios.id))
-    .where(baseWhere)
-    .groupBy(sql`coalesce(nullif(${viewLogs.country}, ''), 'unknown')`)
-    .orderBy(desc(sql<number>`count(*)`))
-    .limit(12);
+  const countries = hasAdvancedAnalytics
+    ? await db
+        .select({
+          label: sql<string>`coalesce(nullif(${viewLogs.country}, ''), 'unknown')`,
+          n: sql<number>`count(*)`,
+        })
+        .from(viewLogs)
+        .innerJoin(portfolios, eq(viewLogs.portfolioId, portfolios.id))
+        .where(baseWhere)
+        .groupBy(sql`coalesce(nullif(${viewLogs.country}, ''), 'unknown')`)
+        .orderBy(desc(sql<number>`count(*)`))
+        .limit(12)
+    : [];
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -170,69 +185,87 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
               </CardContent>
             </Card>
 
-            <Card className="lg:col-span-1">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Top referrers</CardTitle>
-                <CardDescription>Direct vs links that sent traffic</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {referrers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No views yet.</p>
-                ) : (
-                  <ul className="space-y-2 text-sm">
-                    {referrers.map((r) => (
-                      <li key={r.label} className="flex items-center justify-between gap-3">
-                        <span className="truncate text-muted-foreground">{r.label}</span>
-                        <span className="shrink-0 font-medium">{r.n}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
+            {hasAdvancedAnalytics ? (
+              <>
+                <Card className="lg:col-span-1">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Top referrers</CardTitle>
+                    <CardDescription>Direct vs links that sent traffic</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {referrers.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No views yet.</p>
+                    ) : (
+                      <ul className="space-y-2 text-sm">
+                        {referrers.map((r) => (
+                          <li key={r.label} className="flex items-center justify-between gap-3">
+                            <span className="truncate text-muted-foreground">{r.label}</span>
+                            <span className="shrink-0 font-medium">{r.n}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
 
-            <Card className="lg:col-span-1">
+                <Card className="lg:col-span-1">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Devices</CardTitle>
+                    <CardDescription>Derived from user agent</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {devices.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No views yet.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {devices.map((d) => (
+                          <Badge key={d.label} variant="secondary">
+                            {d.label}: {d.n}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <Card className="lg:col-span-2">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Advanced analytics</CardTitle>
+                  <CardDescription>Unlock referrers, devices, and geography breakdowns.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Link href="/pricing" className="text-sm font-medium text-primary underline underline-offset-4">
+                    Compare plans
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {hasAdvancedAnalytics && (
+            <Card className="mt-4">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Devices</CardTitle>
-                <CardDescription>Derived from user agent</CardDescription>
+                <CardTitle className="text-base">Countries</CardTitle>
+                <CardDescription>
+                  Uses edge-provided country header when available (may be unknown locally).
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                {devices.length === 0 ? (
+                {countries.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No views yet.</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
-                    {devices.map((d) => (
-                      <Badge key={d.label} variant="secondary">
-                        {d.label}: {d.n}
+                    {countries.map((c) => (
+                      <Badge key={c.label} variant="outline">
+                        {c.label}: {c.n}
                       </Badge>
                     ))}
                   </div>
                 )}
               </CardContent>
             </Card>
-          </div>
-
-          <Card className="mt-4">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Countries</CardTitle>
-              <CardDescription>
-                Uses edge-provided country header when available (may be unknown locally).
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {countries.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No views yet.</p>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {countries.map((c) => (
-                    <Badge key={c.label} variant="outline">
-                      {c.label}: {c.n}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          )}
 
           <Card className="mt-8">
             <CardHeader>

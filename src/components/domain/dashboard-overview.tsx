@@ -7,6 +7,7 @@ import {
   Settings,
   Globe,
   Pencil,
+  LayoutDashboard,
   Eye,
   FolderKanban,
   Link2,
@@ -90,7 +91,7 @@ export function DashboardOverview({
   showUpgradeCta,
 }: DashboardOverviewProps) {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
       {checkout === 'dev-bypass' && process.env.NODE_ENV !== 'production' && (
         <p className="mb-8 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
           This environment uses relaxed limits for local testing. Use a paid plan when you ship to users.
@@ -183,14 +184,19 @@ export function DashboardOverview({
       <section className="mt-12 lg:mt-14">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
           <h2 className="text-lg font-semibold tracking-tight text-foreground">Your portfolios</h2>
-          {portfolios.length > 0 && (
-            <Link
-              href="/generate"
-              className="text-sm font-medium text-primary hover:underline"
-            >
-              Add another
-            </Link>
-          )}
+          {portfolios.length > 0 &&
+            (plan.variant === 'pro' || plan.variant === 'preview' || plan.variant === 'pro_issue' ? (
+              <Link
+                href="/generate"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                Add another
+              </Link>
+            ) : (
+              <Link href="/pricing" className="text-sm font-medium text-primary hover:underline">
+                Need another portfolio?
+              </Link>
+            ))}
         </div>
 
         <div className="mt-5">
@@ -244,17 +250,35 @@ export function DashboardOverview({
                       )}
                     </div>
                     <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
-                      <Button asChild variant="outline" size="sm" className="min-w-[5.5rem]">
+                      <Button
+                        asChild
+                        variant="secondary"
+                        size="sm"
+                        className="min-w-[5.5rem] border border-transparent transition-colors hover:border-primary/35 hover:bg-primary/5"
+                      >
                         <Link href={`/editor/${portfolio.id}`}>
                           <Pencil className="mr-1.5 h-3.5 w-3.5" aria-hidden />
                           Edit content
                         </Link>
                       </Button>
-                      <Button asChild variant="secondary" size="sm" className="min-w-[5.5rem]">
-                        <Link href={`/dashboard/portfolios/${portfolio.id}/manage`}>Manage portfolio</Link>
+                      <Button
+                        asChild
+                        variant="secondary"
+                        size="sm"
+                        className="min-w-[5.5rem] border border-transparent transition-colors hover:border-primary/35 hover:bg-primary/5"
+                      >
+                        <Link href={`/dashboard/portfolios/${portfolio.id}/manage`}>
+                          <LayoutDashboard className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                          Manage portfolio
+                        </Link>
                       </Button>
                       {portfolio.isPublished && (
-                        <Button asChild variant="secondary" size="sm" className="min-w-[5.5rem]">
+                        <Button
+                          asChild
+                          variant="secondary"
+                          size="sm"
+                          className="min-w-[5.5rem] border border-transparent transition-colors hover:border-primary/35 hover:bg-primary/5"
+                        >
                           <Link href={livePath} target="_blank" rel="noopener noreferrer">
                             <Globe className="mr-1.5 h-3.5 w-3.5" aria-hidden />
                             View live

@@ -179,9 +179,20 @@ export default function PortfolioManagePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild variant="outline" className="w-full sm:w-auto">
-                <Link href={`/editor/${id}/blog`}>Open blog</Link>
-              </Button>
+              {tier === 'pro' ? (
+                <Button asChild variant="outline" className="w-full sm:w-auto">
+                  <Link href={`/editor/${id}/blog`}>Open blog</Link>
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <Button asChild className="w-full sm:w-auto">
+                    <Link href={`/pricing?from=${encodeURIComponent(`/dashboard/portfolios/${id}/manage`)}&intent=blog`}>
+                      Upgrade to unlock blog
+                    </Link>
+                  </Button>
+                  <p className="text-xs text-muted-foreground">See plan details before entering the blog workspace.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -198,9 +209,22 @@ export default function PortfolioManagePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild variant="outline" className="w-full sm:w-auto">
-                <Link href={`/editor/${id}/domain`}>Domain settings</Link>
-              </Button>
+              {tier === 'pro' ? (
+                <Button asChild variant="outline" className="w-full sm:w-auto">
+                  <Link href={`/editor/${id}/domain`}>Domain settings</Link>
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <Button asChild className="w-full sm:w-auto">
+                    <Link href={`/pricing?from=${encodeURIComponent(`/dashboard/portfolios/${id}/manage`)}&intent=domain`}>
+                      Upgrade to unlock domain
+                    </Link>
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Review what is included before opening domain configuration.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

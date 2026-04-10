@@ -20,7 +20,7 @@ const features = [
   {
     icon: Upload,
     title: 'Upload Your Resume',
-    description: 'Drop your PDF or DOCX and let AI extract and structure your content (daily parse limits on Free).',
+    description: 'Drop your PDF or DOCX and let AI extract and structure your content.',
   },
   {
     icon: Sparkles,
@@ -31,24 +31,22 @@ const features = [
   {
     icon: Palette,
     title: 'Beautiful Themes',
-    description:
-      'Classic theme on Free; Neubrutalism and more on Pro—both with light and dark mode on your live site.',
+    description: 'Pick polished themes with light and dark mode support on your live site.',
   },
   {
     icon: Globe,
     title: 'Custom Domains',
-    description: 'Use our hosted URL on every plan; connect your own domain on Pro with DNS verification.',
+    description: 'Use your hosted URL now and connect a custom domain when you are ready.',
   },
   {
     icon: BarChart3,
     title: 'Analytics Dashboard',
-    description: 'View counts on Free; referrers, devices, and geography on Pro.',
+    description: 'Track portfolio performance with views and deeper traffic insights.',
   },
   {
     icon: Layers,
     title: 'Platform Integrations',
-    description:
-      'Link GitHub, LeetCode, Dribbble, Medium, and more from your dashboard (limits may apply by plan).',
+    description: 'Link GitHub, LeetCode, Dribbble, Medium, and more from your dashboard.',
   },
 ] as const;
 
@@ -88,7 +86,7 @@ export function HomeMarketing() {
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Button asChild size="xl">
                   <Link href="/generate">
-                    Get Started Free
+                    Get Started
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
@@ -157,8 +155,7 @@ export function HomeMarketing() {
                 {
                   step: '03',
                   title: 'Deploy',
-                  description:
-                    'Publish your portfolio instantly. Connect a custom domain on the paid plan.',
+                  description: 'Publish your portfolio instantly, then keep refining it as you grow.',
                 },
               ].map((item) => (
                 <div key={item.step} className="text-center">

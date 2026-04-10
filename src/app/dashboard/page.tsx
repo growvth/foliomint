@@ -49,9 +49,9 @@ function getPlanDisplay(
         variant: 'pro_issue',
       };
     case 'cancelled':
-      return { name: 'Free', detail: '3 parses per day · upgrade when you need more', variant: 'free' };
+      return { name: 'Free', detail: '3 parses/day · 1 active portfolio · basic analytics', variant: 'free' };
     default:
-      return { name: 'Free', detail: '3 parses per day · upgrade when you need more', variant: 'free' };
+      return { name: 'Free', detail: '3 parses/day · 1 active portfolio · basic analytics', variant: 'free' };
   }
 }
 

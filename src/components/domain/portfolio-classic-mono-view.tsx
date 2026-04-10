@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 import { PortfolioPublicFooter } from '@/components/domain/portfolio-public-footer';
+import { PortfolioPublicThemeToggle } from '@/components/domain/portfolio-public-theme-toggle';
 import type { SocialLink } from '@/lib/social-links';
 import { cn, normalizeOutboundHref } from '@/lib/utils';
 import type { PortfolioContent } from '@/types';
@@ -140,6 +141,7 @@ export function PortfolioClassicMonoView({
     content.skills?.length ? { label: 'Skills', href: '#skills' } : null,
     showBlogLink ? { label: 'Blog', href: `${siteBasePath}/blog` } : null,
   ].filter((item): item is { label: string; href: string } => item !== null);
+  const mobileBlogItem = navItems.find((item) => item.label === 'Blog');
 
   const skillsEyebrow = content.skills?.length
     ? content.skills.slice(0, 6).join(' · ')
@@ -153,29 +155,56 @@ export function PortfolioClassicMonoView({
           narrowLayout ? 'pt-4 pb-12' : 'pt-8 lg:pt-12',
         )}
       >
-        <header className="mb-10 flex flex-wrap items-center justify-between gap-4 border-b border-zinc-200 pb-6 dark:border-zinc-700">
-          <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{displayName}</span>
-          <nav className="flex flex-wrap items-center justify-end gap-4 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-            {navItems.map((item) =>
-              item.href.startsWith('/') ? (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="transition-colors hover:text-[var(--portfolio-accent)]"
-                >
-                  {item.label}
-                </Link>
-              ) : (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="transition-colors hover:text-[var(--portfolio-accent)]"
-                >
-                  {item.label}
-                </a>
-              ),
+        <header
+          className={cn(
+            'mb-10 flex border-b border-zinc-200 pb-6 dark:border-zinc-700',
+            narrowLayout
+              ? 'flex-col gap-4'
+              : 'flex-row items-center justify-between gap-3 sm:gap-4',
+          )}
+        >
+          <span
+            className={cn(
+              'min-w-0 text-sm font-bold text-zinc-900 dark:text-zinc-100',
+              narrowLayout ? 'break-words' : 'min-w-0 flex-1 truncate pr-2',
             )}
-          </nav>
+          >
+            {displayName}
+          </span>
+          <div className="flex min-w-0 shrink-0 flex-nowrap items-center justify-end gap-x-3 sm:gap-x-4 md:gap-x-5">
+            {mobileBlogItem ? (
+              <Link
+                href={mobileBlogItem.href}
+                className="box-border inline-flex h-10 max-h-10 min-h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-none border border-zinc-300 bg-white px-3 text-[11px] font-semibold uppercase leading-none tracking-[0.08em] text-zinc-600 !shadow-none transition-colors hover:border-[var(--portfolio-accent)] hover:text-[var(--portfolio-accent)] dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-300 sm:hidden"
+              >
+                {mobileBlogItem.label}
+              </Link>
+            ) : null}
+
+            <nav className="hidden max-w-full flex-wrap items-center justify-end gap-x-3 gap-y-2 text-zinc-500 sm:flex sm:gap-x-4 md:gap-x-5 lg:gap-x-4 xl:gap-x-5">
+              {navItems.map((item) =>
+                item.href.startsWith('/') ? (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="text-[10px] font-bold uppercase tracking-[0.14em] transition-colors hover:text-[var(--portfolio-accent)] md:tracking-[0.18em] lg:tracking-[0.2em]"
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    className="text-[10px] font-bold uppercase tracking-[0.14em] transition-colors hover:text-[var(--portfolio-accent)] md:tracking-[0.18em] lg:tracking-[0.2em]"
+                  >
+                    {item.label}
+                  </a>
+                ),
+              )}
+            </nav>
+
+            <PortfolioPublicThemeToggle variant="classic" />
+          </div>
         </header>
 
         <section
@@ -183,10 +212,10 @@ export function PortfolioClassicMonoView({
             'mb-14 border-b border-zinc-200 pb-12 dark:border-zinc-700',
             narrowLayout
               ? 'flex flex-col gap-6'
-              : 'flex flex-col gap-8 md:flex-row-reverse md:items-start md:justify-between',
+              : 'flex flex-col gap-8 lg:flex-row-reverse lg:items-start lg:justify-between',
           )}
         >
-          <div className={cn('shrink-0', !narrowLayout && 'md:pt-1')}>
+          <div className={cn('shrink-0', !narrowLayout && 'lg:pt-1')}>
             {content.profileImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img

@@ -52,6 +52,24 @@ export async function POST(request: Request) {
       isPaymentGatingBypassed() || user.subscriptionStatus === 'active';
 
     if (!isPaid) {
+      const existingPortfolios = await db
+        .select({ id: portfolios.id, expiresAt: portfolios.expiresAt })
+        .from(portfolios)
+        .where(eq(portfolios.userId, userId));
+
+      const hasActivePortfolio = existingPortfolios.some(
+        (p) => !p.expiresAt || p.expiresAt > new Date(),
+      );
+      if (hasActivePortfolio) {
+        return NextResponse.json(
+          {
+            error:
+              'Free includes one active portfolio. Upgrade to Pro for multiple portfolios, or wait for expiry before creating another.',
+          },
+          { status: 403 },
+        );
+      }
+
       const { allowed, remaining } = await checkUploadLimit(userId);
       if (!allowed) {
         return NextResponse.json(

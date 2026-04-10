@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 import { PortfolioPublicFooter } from '@/components/domain/portfolio-public-footer';
+import { PortfolioPublicThemeToggle } from '@/components/domain/portfolio-public-theme-toggle';
 import { blogPosts } from '@/lib/db/schema';
 import type { PublicPortfolioRow } from '@/lib/portfolio-public';
 import {
@@ -30,9 +31,12 @@ export function PortfolioBlogPost({
   return (
     <article className={cn('portfolio-surface', portfolioContentContainerClass())}>
       <div className={portfolioReadingColumnClass()}>
-        <Link href={`${siteBasePath}/blog`} className={portfolioNavPillClass(neu)}>
-          ← All posts
-        </Link>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link href={`${siteBasePath}/blog`} className={portfolioNavPillClass(neu)}>
+            ← All posts
+          </Link>
+          <PortfolioPublicThemeToggle variant={neu ? 'neu' : 'classic'} />
+        </div>
 
         <header className={cn('mt-10', portfolioHeaderRuleClass(neu))}>
           <p className={portfolioEyebrowClass(neu)}>Post</p>

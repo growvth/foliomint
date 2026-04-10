@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { PortfolioClassicMonoView } from '@/components/domain/portfolio-classic-mono-view';
+import { PortfolioPublicThemeToggle } from '@/components/domain/portfolio-public-theme-toggle';
 import { PortfolioPublicFooter } from '@/components/domain/portfolio-public-footer';
 import {
   PORTFOLIO_CARD_PAD,
@@ -123,17 +124,18 @@ export function PortfolioContentView({
   return (
     <div className={portfolioShellClass(neu)}>
       <div className={cn('relative', portfolioContentContainerClass())}>
-        {showBlogLink && (
-          <div className="mb-10 flex justify-end sm:mb-12">
+        <div className="mb-10 flex flex-wrap items-center justify-end gap-3 sm:mb-12">
+          {showBlogLink ? (
             <Link href={`${siteBasePath}/blog`} className={portfolioNavPillClass(neu)}>
               Blog
             </Link>
-          </div>
-        )}
+          ) : null}
+          <PortfolioPublicThemeToggle variant="neu" />
+        </div>
 
         <header className={portfolioHeaderRuleClass(neu)}>
-          <div className="flex flex-col gap-10 md:flex-row md:items-start md:gap-12 lg:gap-16">
-            <div className="shrink-0 md:pt-1">
+          <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-12 xl:gap-16">
+            <div className="shrink-0 lg:pt-1">
               {content.profileImageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -219,7 +221,7 @@ export function PortfolioContentView({
           {content.education && content.education.length > 0 && (
             <section>
               <SectionHeading neu={neu}>Education</SectionHeading>
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid gap-5 md:grid-cols-2">
                 {content.education.map((edu, idx) => (
                   <div key={`${edu.institution}-${idx}`} className={cn(card, pad)}>
                     <h3 className="text-lg font-semibold leading-snug text-zinc-900 dark:text-zinc-100">{edu.institution}</h3>
@@ -241,7 +243,7 @@ export function PortfolioContentView({
           {content.projects && content.projects.length > 0 && (
             <section>
               <SectionHeading neu={neu}>Projects</SectionHeading>
-              <div className={cn('grid gap-5', content.projects.length > 1 && 'sm:grid-cols-2')}>
+              <div className={cn('grid gap-5', content.projects.length > 1 && 'lg:grid-cols-2')}>
                 {content.projects.map((project, idx) => (
                   <div key={`${project.name}-${idx}`} className={cn('flex flex-col', card, pad)}>
                     <div className="flex flex-wrap items-start justify-between gap-3">

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { and, desc, eq } from 'drizzle-orm';
 
 import { PortfolioPublicFooter } from '@/components/domain/portfolio-public-footer';
+import { PortfolioPublicThemeToggle } from '@/components/domain/portfolio-public-theme-toggle';
 import { db } from '@/lib/db';
 import { blogPosts } from '@/lib/db/schema';
 import type { PublicPortfolioRow } from '@/lib/portfolio-public';
@@ -41,9 +42,12 @@ export async function PortfolioBlogIndex({
 
   return (
     <div className={cn('portfolio-surface', portfolioContentContainerClass())}>
-      <Link href={siteBasePath} className={portfolioNavPillClass(neu)}>
-        ← Back to portfolio
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link href={siteBasePath} className={portfolioNavPillClass(neu)}>
+          ← Back to portfolio
+        </Link>
+        <PortfolioPublicThemeToggle variant={neu ? 'neu' : 'classic'} />
+      </div>
 
       <header className={cn('mt-10', portfolioHeaderRuleClass(neu))}>
         <p className={portfolioEyebrowClass(neu)}>Writing</p>

@@ -75,7 +75,7 @@ export function GenerateForm({ isAuthed }: { isAuthed: boolean }) {
     setError(null);
     setStatusMessage(
       consent
-        ? 'Parsing with AI… this often takes 15–30 seconds. Please keep this tab open.'
+        ? 'Parsing with AI… this often takes 15-30 seconds. Please keep this tab open.'
         : 'Extracting text and building your portfolio…',
     );
 
