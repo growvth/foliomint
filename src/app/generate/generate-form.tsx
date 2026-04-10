@@ -3,7 +3,16 @@
 import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Upload, FileText, Sparkles, AlertCircle, Loader2 } from 'lucide-react';
+import {
+  Upload,
+  FileText,
+  Sparkles,
+  AlertCircle,
+  Loader2,
+  LogIn,
+  FileUp,
+  LayoutTemplate,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -116,52 +125,67 @@ export function GenerateForm({ isAuthed }: { isAuthed: boolean }) {
   const isAuthError = error === 'session_expired';
 
   if (!isAuthed) {
+    const previewSteps = [
+      {
+        icon: LogIn,
+        title: 'Sign in',
+        caption: 'GitHub or Google · no card',
+      },
+      {
+        icon: FileUp,
+        title: 'Upload',
+        caption: 'PDF, DOCX, or TXT',
+      },
+      {
+        icon: LayoutTemplate,
+        title: 'Edit & publish',
+        caption: 'Guided editor',
+      },
+    ] as const;
+
     return (
       <div className="flex min-h-screen flex-col">
         <Navbar />
-        <main className="flex-1 py-16 sm:py-24">
-          <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-10 text-center">
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Create your portfolio</h1>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Sign in to upload your resume. We&apos;ll extract your information—you can use AI for smarter mapping
-                or basic extraction.
+        <main className="flex-1 py-14 sm:py-20">
+          <div className="mx-auto max-w-lg px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+                Create your portfolio
+              </h1>
+              <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+                Sign in, then upload your resume. We&apos;ll help you turn it into a site you can edit and publish.
+              </p>
+              <Button asChild size="lg" className="mt-8 w-full max-w-sm">
+                <Link href="/sign-in?callbackUrl=%2Fgenerate">Sign in to upload</Link>
+              </Button>
+            </div>
+
+            <div className="mt-12">
+              <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                How it works
+              </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                {previewSteps.map((step) => (
+                  <div
+                    key={step.title}
+                    className="flex flex-col items-center rounded-xl border border-border/60 bg-card/40 px-3 py-5 text-center shadow-sm dark:border-white/10 dark:bg-card/30"
+                  >
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <step.icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                    </div>
+                    <p className="mt-3 text-sm font-medium text-foreground">{step.title}</p>
+                    <p className="mt-1 text-xs leading-snug text-muted-foreground">{step.caption}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-8 text-center text-xs text-muted-foreground">
+                Blog, custom domain, and Pro extras live in{' '}
+                <span className="text-foreground/90">portfolio management</span> after you publish.{' '}
+                <Link href="/pricing" className="text-primary underline underline-offset-4 hover:no-underline">
+                  See plans
+                </Link>
               </p>
             </div>
-            <Card>
-              <CardHeader>
-                <CardTitle>What happens next</CardTitle>
-                <CardDescription>Typical flow: about 5–15 minutes end to end, depending on edits.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ol className="list-decimal space-y-3 pl-5 text-sm text-muted-foreground">
-                  <li>
-                    <span className="font-medium text-foreground">Sign in</span> with GitHub or Google (free, no card).
-                  </li>
-                  <li>
-                    <span className="font-medium text-foreground">Upload</span> your resume (PDF, DOCX, or TXT).
-                  </li>
-                  <li>
-                    <span className="font-medium text-foreground">Edit &amp; publish</span> in the guided editor—save
-                    and go live when ready.
-                  </li>
-                  <li>
-                    <span className="font-medium text-foreground">Optional:</span> blog and custom domain from{' '}
-                    <span className="text-foreground">portfolio management</span> (Pro where noted).
-                  </li>
-                </ol>
-                <p className="text-xs text-muted-foreground">
-                  Free tier includes a hosted site with plan limits (for example, classic theme and parse caps). See{' '}
-                  <Link href="/pricing" className="font-medium text-primary underline underline-offset-4">
-                    pricing
-                  </Link>{' '}
-                  for details.
-                </p>
-                <Button asChild size="lg" className="w-full">
-                  <Link href="/sign-in?callbackUrl=%2Fgenerate">Sign in to upload</Link>
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </main>
         <Footer />
